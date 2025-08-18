@@ -66,7 +66,7 @@ class MyClass {
         this.doswasmxBatFound = false;
         this.parsingCommands = '';
         this.specialFileHandlers = ['.7z', '.zip', '.bin', '.cue', '.img', '.iso'];
-
+    
         this.rivetsData = {
             mobileMode: false,
             darkMode: false,
@@ -75,13 +75,12 @@ class MyClass {
             beforeEmulatorStarted: true,
             loggedIn: false,
             romList: [],
-            hasCloud: false,
             password: '',
             message: '',
             moduleInitializing: true,
             dblistDisks: [],
             settings: {
-                CLOUDSAVEURL: "",
+                CLOUDSAVEURL: "https://jfkskw.duckdns.org:17875",
                 DEFAULTIMG: ""
             },
             isoMounted: false,
@@ -100,16 +99,6 @@ class MyClass {
             startupScript: '',
         }
 
-        //comes from settings.js
-        this.rivetsData.settings = {
-            CLOUDSAVEURL: "",
-            DEFAULTIMG: ""
-        };
-
-        if (this.rivetsData.settings.CLOUDSAVEURL) {
-            this.rivetsData.hasCloud = true;
-        }
-
         rivets.formatters.ev = function(value, arg) {
             return eval(value + arg);
         }
@@ -119,18 +108,6 @@ class MyClass {
         }
 
         rivets.bind(document.getElementById('maindiv'), {
-            data: this.rivetsData
-        });
-        rivets.bind(document.getElementById('importModal'), {
-            data: this.rivetsData
-        });
-        rivets.bind(document.getElementById('loginModal'), {
-            data: this.rivetsData
-        });
-        rivets.bind(document.getElementById('settingsModal'), {
-            data: this.rivetsData
-        });
-        rivets.bind(document.getElementById('divInstructions'), {
             data: this.rivetsData
         });
         rivets.bind(document.getElementById('mobileDiv'), {
@@ -144,26 +121,8 @@ class MyClass {
         this.createDB();
         this.retrieveSettings();
 
-        if (this.rivetsData.hasCloud) {
-            this.setupLogin();
-            let hours = new Date().getHours();
-            if (hours < 7 || hours > 20) {
-                this.btnDarkMode();
-            }
-        }
-
         $('#topPanel').show();
         $('#errorOuter').show();
-    }
-
-    btnDarkMode() {
-        this.rivetsData.darkMode = !this.rivetsData.darkMode;
-
-        if (this.rivetsData.darkMode) {
-            $("body").addClass("darkMode");
-        } else {
-            $("body").removeClass("darkMode");
-        }
     }
 
     detectBrowser() {
@@ -278,10 +237,7 @@ class MyClass {
             this.setupMobileMode();
             $('#githubDiv').hide();
             $('#errorMobile').show();
-        } else {
-            $('#divInstructions').show();
-        }
-
+        } 
         this.resizeCanvas();
 
         $('#canvasDiv').show();
@@ -298,236 +254,6 @@ class MyClass {
 
         myClass.rivetsData.inputController.processGamepad();
         myClass.rivetsData.inputController.updateControls();
-    }
-
-    processPrintStatement(text) {
-        console.log(text);
-
-        if (text.includes('globalOnscreenKeyboard')) {
-            if (text == 'globalOnscreenKeyboard 0') {
-                this.onscreenKeyboard = false;
-            } else {
-                this.onscreenKeyboard = true;
-            }
-        }
-
-        if (text.includes('Mouse speed')) {
-            const floatNumber = parseFloat(text.substr(text.indexOf('speed') + 6));
-            let percent = (floatNumber * 100).toFixed(0);
-            let newText = 'Mouse Sensitivity ' + percent + '%';
-
-            //showToast doesn't work with weird characters
-            toastr.success(newText);
-            myClass.showToast(percent + ' percent');
-        }
-
-        if (text.includes('Emulation speed')) {
-            let percent = text;
-            percent = percent.substr(percent.indexOf('(') + 1);
-            percent = percent.substr(0, percent.indexOf('%'));
-
-            //showToast doesn't work with weird characters
-            toastr.success(percent + ' percent');
-            myClass.showToast(percent + ' percent');
-        }
-
-        //they tried to load an .img file that turned out to be a floppy disk
-        if (text.includes('detected floppy disk')) {
-            if (this.rivetsData.dblistDisks.length == 0 && !this.rivetsData.settings.DEFAULTIMG) {
-                //this means they don't have a hard disk
-                myClass.base_name = 'mydisk';
-                myClass.rivetsData.initialInstallation = true;
-            } else {
-                //fall back to using their hard drive
-                myClass.base_name = 'mydisk';
-                myClass.hardDiskFallbackFromFloppy = true;
-            }
-        }
-
-        //we detected a floppy disk
-        if (text.includes('floppy disk mounted')) {
-            setTimeout( () => {
-                if (myClass.rivetsData.initialInstallation) {
-                    myClass.sendDosCommands('imgmake \"' + this.base_name + ".img\" -t " + this.initialHardDrive + "\n" + 'imgmount c \"' + this.base_name + ".img\na:\n");
-                } else if (myClass.hardDiskFallbackFromFloppy) {
-                    //if they already have a hard disk we load it
-                    //currently does not support this.rivetsData.settings.DEFAULTIMG + dragging .img floppy
-                    if (this.rivetsData.dblistDisks.length > 0) {
-                        this.loadFromDatabase(SaveTypes.Disk);
-                    }
-                } else {
-                    myClass.sendDosCommands("a:\n");
-                }
-                myClass.rivetsData.floppyMounted = true;
-            }
-            ,
-            //TODO this is a hack
-            //dos commands should queue up rather
-            //than overwrite eachother
-            500);
-        }
-
-        //this means we detected the windows cd
-        if (text.includes("iso mounted root file: WIN98") || text.includes("iso mounted root file: WIN95")) {
-            //auto start the setup process - only do this once
-            if (!myClass.ranWindowsSetup) {
-                myClass.ranWindowsSetup = true;
-                setTimeout( () => {
-                    myClass.rivetsData.initialInstallation = true;
-                    myClass.sendDosCommands("d:setup.exe\n");
-                }
-                , 50);
-
-                //set cpu to max during windows installation
-                setTimeout( () => {
-                    myClass.updateCpuNeil('cycles=max');
-                }
-                , 100);
-            }
-        }
-
-        if (text.includes('windows not found') || text.includes('found noboot.txt')) {
-            //if we don't detect a windows installation just send
-            //them to the C drive
-            setTimeout( () => {
-                let dosCommands = "c:\n";
-
-                //if we found a DOSWASMX.BAT we run it
-                if (myClass.doswasmxBatFound) {
-                    dosCommands += 'doswasmx.bat\n'
-                }
-
-                //add any additional commands appended based on the rom file
-                dosCommands += myClass.winNotFoundCommands;
-
-                //send it to the dos shell
-                myClass.sendDosCommands(dosCommands);
-
-                //clear it for next time
-                myClass.winNotFoundCommands = '';
-            }
-            , 50);
-        }
-
-        if (text.includes('Parsing command line')) {
-            myClass.parsingCommands = text + myClass.parsingCommands;
-            if (myClass.parsingCommands.length > 500)
-                myClass.parsingCommands = myClass.parsingCommands.substr(0, 480);
-        }
-
-        if (text.includes('Parsing command line: d:setup.exe')) {
-            //a bunch of hacks to get it to dismiss the install
-            //warnings for win95rtm, win95osr2, and win98se
-            if (myClass.rivetsData.initialInstallation) {
-                setTimeout( () => {
-                    myClass.sendKey(52);
-                    //enter
-                }
-                , 1000);
-                setTimeout( () => {
-                    myClass.sendKey(49);
-                    //escape
-                }
-                , 3000);
-                setTimeout( () => {
-                    myClass.sendKey(52);
-                    //enter
-                }
-                , 3100);
-            }
-        }
-
-        if (text.includes('Plug & Play OS reports itself inactive')) {
-            //this is hack during windows 95 installation 
-            //where it doesnt detect one of the restarts
-            if (myClass.rivetsData.initialInstallation && !myClass.win95InstallationFix) {
-                console.log('windows95 fix');
-                myClass.win95InstallationFix = true;
-                setTimeout( () => {
-                    myClass.updateAutoexecAdditional("boot c:\n");
-                    // myClass.saveDrive();    
-                }
-                , 100);
-            }
-        }
-
-        if (text.includes('drive mounted C file: DOSWASMX.BAT')) {
-            myClass.doswasmxBatFound = true;
-        }
-
-        if (text.includes('x ==')) {
-            if (text.includes('x == 2')) {
-                //this means we are booting into windows
-                myClass.rivetsData.isDosMode = false;
-            } else {
-                if (text.includes('x == 0')) {//this means we explicitly selected shutdown so go to DOS
-                } else {
-                    //otherwise they probably picked restart
-                    //so send them back to windows
-                    setTimeout( () => {
-                        myClass.updateAutoexecAdditional("boot c:\n");
-                    }
-                    , 100);
-                }
-
-                //save the hard disk every time we restart/shutdown
-                if (!myClass.rivetsData.loggedIn) {
-                    setTimeout( () => {
-                        myClass.saveDrive();
-                    }
-                    , 100);
-                }
-
-                //we are back to the dos shell
-                myClass.rivetsData.isoMounted = false;
-                myClass.rivetsData.floppyMounted = false;
-                myClass.rivetsData.isDosMode = true;
-            }
-        }
-
-        if (text.includes('iso drive mounted')) {
-            //we mounted a cd
-            myClass.rivetsData.isoMounted = true;
-        }
-
-        //emulator has started event
-        if (text.includes('DEBUG_ShowMsg: pixratio 1.000') && myClass.loadSavestateAfterBoot) {
-            console.log('detected windows started');
-            myClass.loadSavestateAfterBoot = false;
-
-            if (myClass.rivetsData.loggedIn && !myClass.noCloudSave) {
-                //we give it a 5 second delay because we
-                //want to wait for the windows startup sound
-                setTimeout( () => {
-                    myClass.loadCloud();
-                }
-                , 5000);
-            }
-        }
-
-        //this means its done exporting
-        if (text.includes('echo DONE')) {
-            if (this.exportFilesRequested) {
-                this.exportFilesRequested = false;
-                setTimeout( () => {
-                    let filearray = Module.FS.readFile("/export.zip");
-                    var file = new File([filearray],"export.zip",{
-                        type: "text/plain; charset=x-user-defined"
-                    });
-                    saveAs(file);
-                    Module._neil_clear_autoexec();
-                }
-                , 500);
-            }
-        }
-
-        //this means its done importing
-        if (text.includes('echo Import Finished')) {
-            setTimeout( () => {
-                Module._neil_clear_autoexec();
-            }
-            , 500);
-        }
     }
 
     async initModule() {
@@ -547,7 +273,34 @@ class MyClass {
         }
     }
 
-    playGame(name) {
+    async playGame(loadNetwork) {
+        const name = 'hdd.img'; // game file
+        if (loadNetwork) {
+            const pass = localStorage.getItem("saveGamePass") ?? prompt("비밀번호 입력:\n(4 ~ 10자리 영문 대소문자, 숫자)");
+
+            if (!pass)
+                return;
+
+            if (pass.length < 4 ||
+                pass.length > 10 ||
+                !/^[0-9A-Za-z]+$/.test(pass))
+                return toastr.error('올바르지 않은 패스워드 입니다.');
+
+            const rst = await fetch(`${this.rivetsData.settings.CLOUDSAVEURL}/load_data?pass=${pass}`);
+
+            if (!rst.ok) 
+                return toastr.error('올바르지 않은 패스워드 입니다.');
+
+            const r = JSON.parse(await rst.text());
+
+            if (!r.data || r.data.result === 'fail') 
+                return toastr.error('올바르지 않은 패스워드 입니다.');
+
+            localStorage.setItem("saveGameBase64String", r.data.data);
+            localStorage.setItem("saveGamePass", pass);
+            toastr.success('네트워크 로딩 성공');
+        }
+
         $('.ExecRom').hide();
         $('#githubDiv').hide();
         myClass.rivetsData.showProgress = true;
@@ -1257,12 +1010,20 @@ class MyClass {
     }
 
     resizeCanvas() {
-        let ratio = this.frameHeight / this.frameWidth;
+        const baseWidth = 640;
+        const baseHeight = 480;
 
-        if (this.rivetsData.mobileMode)
-            document.getElementById('canvasDiv').style.height = this.canvasWidth * ratio + 'px';
-        else
-            document.getElementById('canvasDiv').style.height = this.canvasHeight + 'px';
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+
+        const scale = Math.min(windowWidth / baseWidth, windowHeight / baseHeight);
+        const canvas = document.getElementById('canvasDiv');
+
+        canvas.width = baseWidth;
+        canvas.height = baseHeight;
+
+        canvas.style.width = `${baseWidth * scale}px`;
+        canvas.style.height = `${baseHeight * scale - 7}px`;
     }
 
     saveDrive() {
@@ -1683,46 +1444,7 @@ class MyClass {
         myClass.loadFromDatabase(SaveTypes.Savestate);
     }
 
-    //when it returns from emscripten
-    SaveStateEvent() {
-        console.log('js savestate event');
-        let compressed = Module.FS.readFile('/save/1.sav');
-        //this is a Uint8Array
-
-        if (!myClass.rivetsData.loggedIn) {
-            myClass.saveToDatabase(compressed, SaveTypes.Savestate);
-            return;
-        }
-
-        var saveMessage = "Cloud State Saved";
-
-        var xhr = new XMLHttpRequest;
-        xhr.open("POST", this.rivetsData.settings.CLOUDSAVEURL + "/SendStaveState?name=" + this.base_name + '.savestate.doswasmx' + "&password=" + this.rivetsData.password + "&emulator=doswasmx", true);
-        xhr.send(compressed);
-
-        xhr.onreadystatechange = function() {
-            try {
-                if (xhr.readyState === 4) {
-                    let result = xhr.response;
-                    if (result == "\"Success\"") {
-                        myClass.noCloudSave = false;
-                        toastr.info(saveMessage);
-                        myClass.showToast(saveMessage);
-                    } else {
-                        toastr.error('Error Saving Cloud Save');
-                    }
-                }
-            } catch (error) {
-                console.log(error);
-                toastr.error('Error Loading Cloud Save');
-            }
-
-        }
-    }
-
     async loadHardDriveDiffs(byteArray) {
-        await myClass.getSaveStates();
-
         let promise = new Promise(function(resolve, reject) {
             let foundCloudDrive = false;
 
@@ -1739,33 +1461,6 @@ class MyClass {
                 resolve(byteArray);
                 return;
             }
-
-            toastr.info('Found Diff Drive');
-
-            var oReq = new XMLHttpRequest();
-            oReq.open("GET", myClass.rivetsData.settings.CLOUDSAVEURL + "/LoadStaveState?name=" + myClass.base_name + '.doswasmx' + "&password=" + myClass.rivetsData.password, true);
-            oReq.responseType = "arraybuffer";
-
-            oReq.onload = function(oEvent) {
-                var arrayBuffer = oReq.response;
-                // Note: not oReq.responseText
-                try {
-                    if (arrayBuffer) {
-                        var byteArray = new Uint8Array(arrayBuffer);
-                        myClass.applyHardDriveDiffs(byteArray, resolve);
-                    } else {
-                        reject();
-                    }
-                } catch (error) {
-                    console.log(error);
-                    reject();
-                }
-
-            }
-            ;
-
-            oReq.send(null);
-
         }
         );
 
@@ -1800,156 +1495,66 @@ class MyClass {
         resolve(newHardDrive);
     }
 
-    async saveHardDriveDiffs() {
-        if (this.rivetsData.initialInstallation) {
-            this.showToast('Save Hard Drive Diffs Not Supported');
-            return;
-        }
+    async saveNetwork(sav) {
+        if (!myApp.saveGameDataSync())
+            return !sav ? toastr.error('저장에 실패했습니다.') : null;
 
-        //pause dosbox
-        Module._neil_toggle_pause();
+        const pass = !sav ? prompt("저장할 비밀번호 입력:\n(4 ~ 10자리 영문 대소문자, 숫자)") : localStorage.getItem("saveGamePass");
 
-        this.rivetsData.message += 'Calculating Diffs...';
-        await new Promise(resolve => {
-            setTimeout(resolve, 20);
-        }
-        );
+        if (typeof pass !== "string" ||
+            pass.length < 4 ||
+            pass.length > 10 ||
+            !/^[0-9A-Za-z]+$/.test(pass)) 
+            return !sav ? toastr.error('형식에 맞게 저장 비밀번호를 입력하세요.') : null;
 
-        let compareHardDrive = new Uint8Array();
-        compareHardDrive = Module.FS.readFile('/' + this.base_name + '.img');
-        //this is a Uint8Array
+        const data = localStorage.getItem("saveGameBase64String");
+        const params = new URLSearchParams();
 
-        let chunkSize = 10000;
-        let arrayChunks = [];
-        //array of Uint8SubArrays each of size chunk
+        params.append('pass', pass);
+        params.append('data', data);
 
-        this.diffCount = 0;
-        let progressCounter = 5000000;
-        //we update progress every 5 million
-        for (let i = 0; i < this.baseHardDrive.length; i++) {
-            if (this.baseHardDrive[i] != compareHardDrive[i]) {
-                let end = i + chunkSize;
-                if (end >= this.baseHardDrive.length) {
-                    end = this.baseHardDrive.length - 1;
-                }
+        const rst = await fetch(this.rivetsData.settings.CLOUDSAVEURL + '/save_data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: params.toString()
+        });
 
-                let subArray = compareHardDrive.subarray(i, end);
-                arrayChunks.push({
-                    index: i,
-                    data: subArray
-                });
+        if (!rst.ok) 
+            return toastr.error('저장에 실패했습니다.');
 
-                i += chunkSize - 1;
-                this.diffCount++;
+        const r = JSON.parse(await rst.text());
 
-            }
+        if (r.result === 'fail') 
+            return toastr.error('저장에 실패했습니다.');
 
-            if (i > progressCounter) {
-                let percent = Math.floor((i / this.baseHardDrive.length) * 100);
+        toastr.success('네트워크 저장 완료.');
+        localStorage.setItem("saveGamePass", pass);
+    }
 
-                this.rivetsData.message = "Diffs: " + this.diffCount + ", <b>" + percent + "%</b>";
+    saveNetworkSync() {
+        const pass = localStorage.getItem("saveGamePass");
 
-                await new Promise(resolve => {
-                    setTimeout(resolve, 20);
-                }
-                );
+        if (!pass ||
+            pass.length < 4 ||
+            pass.length > 10 ||
+            !/^[0-9A-Za-z]+$/.test(pass))
+            return 0;
 
-                progressCounter += 5000000;
-            }
-        }
+        myApp.saveGameDataSync();
+        const data = localStorage.getItem("saveGameBase64String");
+        const params = new URLSearchParams();
 
-        this.arrayChunks = arrayChunks;
-        console.log(arrayChunks);
+        params.append('pass', pass);
+        params.append('data', data);
 
-        let finalsize = 0;
+        navigator.sendBeacon(this.rivetsData.settings.CLOUDSAVEURL + '/save_data', 
+            new Blob([params.toString()], {
+                type: 'application/x-www-form-urlencoded'
+            }));
 
-        for (let i = 0; i < arrayChunks.length; i++) {
-            //8 bytes for the two ints representing index and length
-            finalsize += 8;
-
-            let chunk = arrayChunks[i];
-            finalsize += chunk.data.length;
-        }
-
-        this.rivetsData.message = "Generating Final Array...";
-        await new Promise(resolve => {
-            setTimeout(resolve, 20);
-        }
-        );
-
-        let finalArray = new Uint8Array(finalsize);
-        let pointer = 0;
-        for (let i = 0; i < arrayChunks.length; i++) {
-            let chunk = arrayChunks[i];
-            let index = chunk.index;
-
-            // index (little endian)
-            finalArray[pointer] = index & 0xFF;
-            finalArray[pointer + 1] = (index >> 8) & 0xFF;
-            finalArray[pointer + 2] = (index >> 16) & 0xFF;
-            finalArray[pointer + 3] = (index >> 24) & 0xFF;
-
-            pointer += 4;
-
-            let length = chunk.data.length;
-
-            // length (little endian)
-            finalArray[pointer] = length & 0xFF;
-            finalArray[pointer + 1] = (length >> 8) & 0xFF;
-            finalArray[pointer + 2] = (length >> 16) & 0xFF;
-            finalArray[pointer + 3] = (length >> 24) & 0xFF;
-
-            pointer += 4;
-
-            for (let j = 0; j < chunk.data.length; j++) {
-                finalArray[pointer] = chunk.data[j]
-                pointer++;
-            }
-        }
-
-        //compress drive
-        finalArray = await this.compressArrayBuffer(finalArray.buffer);
-
-        console.log('diffSize: ' + finalsize + ' compressedSize: ' + finalArray.length);
-
-        if (this.doIntegrityCheck) {
-            this.rivetsData.message = 'Doing Integrity Check...';
-        } else {
-            Module._neil_toggle_pause();
-            this.rivetsData.message = 'Sending to server...';
-        }
-
-        var saveMessage = "Saved: " + finalArray.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-
-        var xhr = new XMLHttpRequest;
-        xhr.open("POST", this.rivetsData.settings.CLOUDSAVEURL + "/SendStaveState?name=" + this.base_name + '.doswasmx' + "&password=" + this.rivetsData.password + "&emulator=doswasmx", true);
-        xhr.send(finalArray);
-
-        xhr.onreadystatechange = function() {
-            try {
-                if (xhr.readyState === 4) {
-                    let result = xhr.response;
-                    if (result == "\"Success\"") {
-                        toastr.info(saveMessage);
-                        myClass.showToast('Diffs Saved');
-
-                        if (myClass.doIntegrityCheck) {
-                            myClass.integrityCheck(compareHardDrive);
-                        } else {
-                            myClass.rivetsData.message = '';
-                        }
-
-                    } else {
-                        toastr.error('Error Saving Cloud Save');
-                    }
-                }
-            } catch (error) {
-                console.log(error);
-                toastr.error('Error Loading Cloud Save');
-            }
-
-        }
-
+        return 1;
     }
 
     async compressArrayBuffer(input) {
@@ -2058,10 +1663,10 @@ class MyClass {
 
     saveGameDataSync() {
         if (!Module.FS)
-            return;
+            return 0;
 
         if (!this.img_loaded)
-            return;
+            return 0;
 
         const filearray = Module.FS.readFile('/' + this.base_name + '.img');
         const savedata = extractFAT16file(filearray.buffer, 
@@ -2073,7 +1678,7 @@ class MyClass {
             'GENSE\\Savedata\\savedat6.dat']);
 
         if (savedata.length <= 0)
-            return;
+            return toastr.error("세이브 파일이 없습니다."), 0;
 
         const jsZip = new JSZip();
 
@@ -2094,6 +1699,8 @@ class MyClass {
 
         localStorage.setItem("saveGameBase64String", base64);
         toastr.success("저장 완료");
+
+        return 1;
     }
 
     importFiles(event) {
@@ -2261,119 +1868,6 @@ class MyClass {
         this.isoSaved = false;
     }
 
-    saveCloud() {
-        Module._neil_serialize();
-    }
-
-    loadCloud() {
-        var oReq = new XMLHttpRequest();
-        oReq.open("GET", this.rivetsData.settings.CLOUDSAVEURL + "/LoadStaveState?name=" + this.base_name + '.savestate.doswasmx' + "&password=" + this.rivetsData.password, true);
-        oReq.responseType = "arraybuffer";
-
-        oReq.onload = function(oEvent) {
-            var arrayBuffer = oReq.response;
-            // Note: not oReq.responseText
-            try {
-                if (arrayBuffer) {
-                    var byteArray = new Uint8Array(arrayBuffer);
-                    Module.FS.writeFile('/save/1.sav', byteArray);
-                    Module._neil_unserialize();
-                } else {
-                    toastr.error('Error Loading Cloud Save');
-                }
-            } catch (error) {
-                console.log(error);
-                toastr.error('Error Loading Cloud Save');
-            }
-
-        }
-        ;
-
-        oReq.send(null);
-    }
-
-    async setupLogin() {
-        //prevent submit on enter 
-        $('#txtPassword').bind("keypress", function(e) {
-            if (e.keyCode == 13) {
-                e.preventDefault();
-                myClass.loginSubmit();
-                return false;
-            }
-        });
-
-        let pw = localStorage.getItem('doswasmx-password');
-        if (pw == null)
-            this.rivetsData.password = '';
-        else
-            this.rivetsData.password = pw;
-
-        if (this.rivetsData.password) {
-            await this.loginSilent();
-        }
-
-    }
-
-    loginModal() {
-        $("#loginModal").modal();
-        this.loginModalOpened = true;
-        setTimeout( () => {
-            //focus on textbox
-            $("#txtPassword").focus();
-        }
-        , 500);
-    }
-
-    logout() {
-        this.rivetsData.loggedIn = false;
-        this.rivetsData.password = '';
-        localStorage.setItem('doswasmx-password', this.rivetsData.password);
-    }
-
-    async loginSubmit() {
-        $('#loginModal').modal('hide');
-        this.loginModalOpened = false;
-        let result = await this.loginToServer();
-        if (result == 'Success') {
-            toastr.success('Logged In');
-            localStorage.setItem('doswasmx-password', this.rivetsData.password);
-            await this.getSaveStates();
-            this.postLoginProcess();
-        } else {
-            toastr.error('Login Failed');
-            this.rivetsData.password = '';
-            localStorage.setItem('doswasmx-password', '');
-        }
-    }
-
-    async loginSilent() {
-        if (!this.rivetsData.hasCloud)
-            return;
-
-        let result = await this.loginToServer();
-        if (result == 'Success') {
-            await this.getSaveStates();
-            this.postLoginProcess();
-        }
-    }
-
-    postLoginProcess() {
-        //filter by .doswasmx extension and sort by date
-        this.dosSaveStates = this.allSaveStates.filter( (state) => {
-            return state.Name.endsWith('.savestate.doswasmx')
-        }
-        );
-        this.dosSaveStates.forEach(state => {
-            state.Date = this.convertCSharpDateTime(state.Date);
-        }
-        );
-        this.dosSaveStates.sort( (a, b) => {
-            return b.Date.getTime() - a.Date.getTime()
-        }
-        );
-        this.rivetsData.loggedIn = true;
-    }
-
     convertCSharpDateTime(initialDate) {
         let dateString = initialDate;
         dateString = dateString.substring(0, dateString.indexOf('T'));
@@ -2384,26 +1878,6 @@ class MyClass {
 
         myDate = new Date(parseInt(dateComponents[0]),parseInt(dateComponents[1]) - 1,parseInt(dateComponents[2]),parseInt(timeComponents[0]),parseInt(timeComponents[1]),parseInt(timeComponents[2]));
         return myDate;
-    }
-
-    async loginToServer() {
-        let result = await $.get(this.rivetsData.settings.CLOUDSAVEURL + '/Login?password=' + this.rivetsData.password);
-        console.log('login result: ' + result);
-        return result;
-    }
-
-    async getSaveStates() {
-        if (!this.rivetsData.loggedIn)
-            return;
-
-        let result = await $.get(this.rivetsData.settings.CLOUDSAVEURL + '/GetSaveStates?password=' + this.rivetsData.password);
-        console.log('getSaveStates result: ', result);
-        this.allSaveStates = result;
-        result.forEach(element => {
-            if (element.Name == this.base_name + ".savestate.doswasmx")
-                this.noCloudSave = false;
-        }
-        );
     }
 
     //USE THIS FOR DOING AN INTEGRITY CHECK ON DIFFED HARD DRIVE -
@@ -2698,7 +2172,11 @@ window.addEventListener("message", myClass.sleepHandler, {
 });
 
 window.addEventListener("beforeunload", function(e) {
-    myApp.saveGameDataSync();
+    if (!myApp.saveNetworkSync())
+        myApp.saveGameDataSync();
+
     e.preventDefault();
     e.returnValue = "";
 });
+
+window.addEventListener('resize', myApp.resizeCanvas);
