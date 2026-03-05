@@ -1,54 +1,43 @@
-.githubDiv a {
-    color: black;
+/* =========================================
+   1. Fonts (Ataho Style)
+   ========================================= */
+@font-face {
+    font-family: 'KoddiUDOnGothic';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/KoddiUDOnGothic-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
 }
 
-.divTouchSurface {
-    color: lightgray;
+@font-face {
+    font-family: 'KoddiUDOnGothic';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/KoddiUDOnGothic-Bold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
 }
 
-.darkMode {
-    background-color: black;
-    color: white;
+/* =========================================
+   2. Global Styles
+   ========================================= */
+body,
+html {
+    margin: 0;
+    height: 100%;
+    background-color: #000;
+    font-family: 'KoddiUDOnGothic', sans-serif;
+    color: #fff;
 }
 
-.darkMode .modal-content {
-    background-color: black;
-    border: 3px solid white;
+a {
+    text-decoration: none;
+    color: #7ba6de;
 }
 
-.darkMode .githubDiv a {
-    color: white;
+a:hover {
+    text-decoration: underline;
 }
 
-.darkMode .divTouchSurface {
-    background-color: black;
-}
-
-.darkMode .lightpurple {
-    background-color: rgb(30, 30, 30);
-    color: gray;
-}
-
-.darkMode .darkpurple {
-    background-color: rgb(45, 30, 30);
-    color: gray;
-}
-
-.darkMode .divTouchSurface {
-    color: gray;
-}
-
-.darkMode .buttonhold {
-    background-color: darkslategray;
-}
-
-.darkMode .mobileButtons {
-    background-color: black;
-}
-
-.darkMode .menuDiv {
-    color: black;
-}
 
 .spinner {
     display: inline-block;
@@ -73,29 +62,25 @@
     font-size: 1rem;
 }
 
-.settingsTitle {
-    vertical-align: top;
-    padding-top: 10px;
-}
-
-.lightpurple {
-    background-color: rgb(189, 174, 173);
-}
-
-.darkpurple {
-    background-color: rgb(238, 21, 21);
-    background-color: rgb(199, 199, 230);
-}
-
-.buttonhold {
-    background-color: lightsalmon;
-}
 
 #afterLoadDiv {
     display: none;
     position: absolute;
     left: 50%;
     transform: translate(-50%, 0);
+
+    /* New Structured Panel Layout */
+    flex-direction: column;
+    gap: 12px;
+    padding: 15px 25px;
+    background: rgba(0, 0, 0, 0.85);
+    /* Dark background makes white buttons pop */
+    border: 2px solid #333;
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    white-space: nowrap;
 }
 
 .hover-zone {
@@ -108,15 +93,126 @@
 }
 
 .hover-zone:hover #afterLoadDiv {
-    display: block;
+    display: flex;
+    /* Changed from display: block to support flex layout */
 }
 
-body,
-html {
-    margin: 0;
-    height: 100%;
-    background-color: black;
+
+/* =========================================
+   4. UI Components (Ataho Modal Style Buttons)
+   ========================================= */
+
+/* Base Emulator Button */
+.emu-btn {
+    display: inline-block;
+    padding: 8px 16px;
+    font-family: 'KoddiUDOnGothic', sans-serif;
+    font-size: 1rem;
+    font-weight: normal;
+    color: #000;
+    background-color: #fff;
+    border: 2px solid #000;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    user-select: none;
+    transition: all 0.1s ease;
+    box-shadow: 2px 2px 0px rgba(0, 0, 0, 1);
+    word-break: keep-all;
+    /* Prevent text breaking */
 }
+
+.emu-btn:hover {
+    background-color: #f8f9fa;
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px rgba(0, 0, 0, 1);
+}
+
+.emu-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px rgba(0, 0, 0, 1);
+    background-color: #ffd700;
+    /* Ataho gold active */
+}
+
+.emu-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 2px 2px 0px rgba(0, 0, 0, 1);
+    background-color: #eee;
+    color: #666;
+    border-color: #666;
+}
+
+/* Primary "Start" Button */
+.emu-btn-primary {
+    font-size: 1.25rem;
+    font-weight: bold;
+    padding: 12px 30px;
+    background-color: #ffd700;
+    /* Start out gold to draw attention */
+}
+
+.emu-btn-primary:hover {
+    background-color: #ffe44d;
+}
+
+.emu-btn-primary:active {
+    background-color: #e6c200;
+}
+
+
+/* Button Group (Display Mode Toggle) */
+.emu-btn-group {
+    display: inline-flex;
+    border-radius: 10px;
+    border: 2px solid #000;
+    background-color: #fff;
+    box-shadow: 2px 2px 0px rgba(0, 0, 0, 1);
+    overflow: hidden;
+    /* To keep rounded corners for internal active states */
+}
+
+.emu-btn-group .emu-btn {
+    border: none;
+    border-radius: 0;
+    border-right: 2px solid #000;
+    box-shadow: none;
+    /* Shadow handled by group container */
+    transform: none;
+    font-size: 0.9rem;
+    padding: 6px 14px;
+}
+
+.emu-btn-group .emu-btn:last-child {
+    border-right: none;
+}
+
+.emu-btn-group .emu-btn:hover {
+    background-color: #f8f9fa;
+    transform: none;
+    /* Disable individual button movement */
+    box-shadow: none;
+}
+
+.emu-btn-group .emu-btn:active {
+    background-color: #ffd700;
+    color: #000;
+    transform: none;
+    /* Disable individual button movement */
+    box-shadow: none;
+}
+
+.emu-btn-group .emu-btn.active {
+    background-color: #ffd700;
+    color: #000;
+    font-weight: bold;
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.4);
+    /* Inset shadow to look pressed */
+}
+
 
 #canvasDiv {
     padding: 0;

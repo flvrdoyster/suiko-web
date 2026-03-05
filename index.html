@@ -40,22 +40,42 @@
                     <div class="progress-bar bg-info" role="progressbar" id="myProgress">1%</div>
                 </div>
 
-                <button class="ExecRom btn btn-primary btn-lg mt-4" onclick="myApp.playGame()"
-                    rv-disabled="data.moduleInitializing">시작</button>
+                <button class="ExecRom emu-btn emu-btn-primary mt-4" onclick="myApp.playGame()"
+                    rv-disabled="data.moduleInitializing">게임 시작</button>
             </div>
 
             <!-- AFTER LOAD -->
             <div class="hover-zone">
-                <div style="display: inline;" rv-hide="data.beforeEmulatorStarted" id="afterLoadDiv">
+                <div rv-hide="data.beforeEmulatorStarted" id="afterLoadDiv">
 
                     <div class="mt-2 mb-2" rv-if="data.message">
-                        <div rv-html="data.message">
+                        <div rv-html="data.message" style="color: white; text-align: center;">
                         </div>
                     </div>
 
-                    <button class="btn btn-primary mt-2 mb-2" onclick="myApp.togglePause()">일시정지/재시작</button>
-                    <button class="btn btn-primary mt-2 mb-2" onclick="myApp.toggleOnscreenKeyboard()">화상키보드</button>
-                    <button class="btn btn-primary mt-2 mb-2" onclick="myApp.newRom()">나가기</button>
+                    <!-- Top Row: Core Tools -->
+                    <div
+                        style="display: flex; justify-content: center; gap: 10px; border-bottom: 2px dashed #444; padding-bottom: 12px;">
+                        <button class="emu-btn" onclick="myApp.togglePause()">일시 정지 / 재개</button>
+                        <button class="emu-btn" onclick="myApp.toggleOnscreenKeyboard()">가상 키보드</button>
+                    </div>
+
+                    <!-- Bottom Row: Display Mode -->
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+                        <span
+                            style="color: #ddd; font-weight: bold; font-size: 0.95rem; text-shadow: 1px 1px 0px #000;">화면
+                            비율</span>
+                        <div class="emu-btn-group" role="group">
+                            <button type="button" class="emu-btn" rv-class-active="data.displayMode | eq 'original'"
+                                onclick="myApp.setDisplayMode('original')">원본 크기</button>
+                            <button type="button" class="emu-btn" rv-class-active="data.displayMode | eq 'fit'"
+                                onclick="myApp.setDisplayMode('fit')">화면 맞춤</button>
+                        </div>
+                        <div class="emu-btn-group" role="group">
+                            <button class="emu-btn" onclick="myApp.setDisplayMode('fullscreen')">전체 화면</button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -73,11 +93,8 @@
     </div>
 
     <h6 id="githubDiv" class="githubDiv card-title mt-4 text-center" style="display: none;">
-        <a href="https://github.com/nbarkhina/doswasmx" target="_blank" style="color: white;">
-            원작자 GitHub
-            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyRpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vY2FwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoTWFjaW50b3NoKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpFNTE3OEEyQTk5QTAxMUUyOUExNUJDMTA0NkE4OTA0RCIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDpFNTE3OEEyQjk5QTAxMUUyOUExNUJDMTA0NkE4OTA0RCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkU1MTc4QTI4OTlBMDExRTI5QTE1QkMxMDQ2QTg5MDREIiBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuZGlkOkU1MTc4QTI5OTlBMDExRTI5QTE1QkMxMDQ2QTg5MDREIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+m4QGuQAAAyRJREFUeNrEl21ojWByx895TDPbMNlBK46IUiNmPvHBSUjaqc0H8pF5+aDUKPEBqU2NhRQpX5Rv5jWlDIWlMCv7MMSWsWwmb3tpXub4XXWdPHvc9/Gc41nu+nedc7/8r/99PffLdYdDPsvkwsgkTBwsA/PADJAHzX2gHTwBt8Hl7p73733whn04XoDZDcpBlk+9P8AFcAghzRkJwPF4zGGw0Y9QS0mAM2AnQj77FqCzrtcwB1Hk81SYojHK4DyGuQ6mhIIrBWB9Xm7ug/6B/nZrBHBegrkFxoVGpnwBMSLR9EcEcC4qb8pP14BWcBcUgewMnF3T34VqhWMFkThLJAalwnENOAKiHpJq1FZgI2AT6HZtuxZwR9GidSHtI30jOrbawxlVX78/AbNfhHlomEUJJI89O2MqeE79T8/nk8nMBm/dK576hZgmA3cp/R4l9/UeSxiHLVIlNm4nFfT0bxyuIj7LHRTKai+zdJobwMKzcZSJb0ePV5PKN+BqAAKE47UlMnERELMM3EdYP/yrd+XYb2mOiYBiQ8OQnoRBlXrl9JZix7D1pHTazu4MoyBcnYamqAjIMTR8G4FT8LuhLsexXYYjICBiqhQBvYb6fLZIJCjPypVvaOoVAW2WcasCnL2Nq82xHJNSqlCeFcDshaPK0twkAhosjZL31QYw+1rlMpWGMArl23SBsZZO58F2tlJXmjOXS+s4WGvpMiBJT/I2PInZ6lIs9/hBsNS1hS6BG0DSqmYEDRlCXQrmy50P1oDRKTSegmNbUsA0zDMwRhPJXeCE3vWLPQMvan6X8AgIa1vcR4AkGZkDR4ejJ1UHpsaVI0g2LInpOsNFUud1rhxSV+fzC9Woz2EZkWQuja7/B+jUrgtIMpy9YCW4n4K41YfzRneW5E1KJTe4B2Zq1Q5EHEtj4U3AfEzR5SVY4l7QYQPJdN2as7RKBF0BPZqqH4VgMAMBL8Byxr7y8zCZiDlnOcEKIPmUpgB5Z2ww5RdOiiRiNajUmWda5IG6WbhsyY2fx6m8gLcoJDJFkH219M3We1+cnda93pfycZpIJEL/s/wSYADmOAwAQgdpBAAAAABJRU5ErkJggg=="
-                style="height: 25px; padding-bottom: 5px; padding-left: 10px; filter: invert(1);">
-        </a>
+        <a href="https://github.com/nbarkhina/doswasmx" target="_blank" style="color: white;">DOSWasmX</a> by Neil
+        Barkhina
     </h6>
 
 
@@ -91,8 +108,8 @@
             document.head.appendChild(script);
         }
 
-        loadJavaScriptRandom('script.js');
         loadJavaScriptRandom('keyboard.js');
+        loadJavaScriptRandom('script.js');
         loadJavaScriptRandom('controls.js');
         loadJavaScriptRandom('dosbox.js');
         loadJavaScriptRandom('fat16.js');

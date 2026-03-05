@@ -7,15 +7,64 @@ const SaveTypes = {
 
 class MyClass {
     constructor() {
+        // 1. Initialize core state and UI data
+        this.iosMode = false;
+        this.rivetsData = {
+            mobileMode: false,
+            darkMode: false,
+            inputController: null,
+            cpu: 'max',
+            beforeEmulatorStarted: true,
+            message: '',
+            moduleInitializing: true,
+            dblistDisks: [],
+            settings: {
+                DEFAULTIMG: ""
+            },
+            isoMounted: false,
+            noLocalSave: true,
+            floppyMounted: false,
+            isDosMode: true,
+            lblError: '',
+            initialInstallation: false,
+            changeCD: false,
+            changeFloppy: false,
+            loadFloppy: false,
+            noCopyImport: false,
+            displayMode: 'fit',
+        };
+
+        // 2. Immediate Data Binding and UI Display
+        this.detectBrowser(); // Sets iosMode and mobileMode in rivetsData
+
+        const mainDiv = document.getElementById('maindiv');
+        if (mainDiv) {
+            rivets.bind(mainDiv, { data: this.rivetsData });
+        }
+
+        $('#topPanel').show();
+        $('#errorOuter').show();
+
+        // 3. Initialize Emulation Properties
         this.canvas = document.getElementById('canvas');
-        this.ctx = this.canvas.getContext('2d');
+        if (this.canvas) {
+            this.ctx = this.canvas.getContext('2d');
+        }
         this.rgbaDestination = new Uint8ClampedArray(640 * 480 * 4);
         this.showFPS = true;
-        this.keyboardController = new KeyboardController();
+
+        // Wrap fail-prone modules in try-catch
+        try {
+            this.keyboardController = new KeyboardController();
+        } catch (e) {
+            console.error('KeyboardController failed to initialize:', e);
+            // Fallback for safety
+            this.keyboardController = { visible: false, toggle: () => { } };
+        }
+
         this.lastHeapLength = 0;
         this.rom_name = '';
         this.rom_size = 0;
-        this.iosMode = false;
         this.base_name = '';
         this.initCount = 0;
         this.baseImageSaved = false;
@@ -61,34 +110,11 @@ class MyClass {
         this.parsingCommands = '';
         this.specialFileHandlers = ['.7z', '.zip', '.bin', '.cue', '.img', '.iso'];
 
-        this.rivetsData = {
-            mobileMode: false,
-            darkMode: false,
-            inputController: null,
-            cpu: 'max',
-            beforeEmulatorStarted: true,
-            message: '',
-            moduleInitializing: true,
-            dblistDisks: [],
-            settings: {
-                DEFAULTIMG: ""
-            },
-            isoMounted: false,
-            noLocalSave: true,
-            floppyMounted: false,
-            isDosMode: true,
-            lblError: '',
-            initialInstallation: false,
-            changeCD: false,
-            changeFloppy: false,
-            loadFloppy: false,
-            noCopyImport: false,
-        };
-
         this.configuration = {
             startupScript: '',
         }
 
+        // Setup formatters
         rivets.formatters.ev = function (value, arg) {
             return eval(value + arg);
         }
@@ -96,23 +122,13 @@ class MyClass {
             let eval_string = "'" + value + "'" + arg;
             return eval(eval_string);
         }
+        rivets.formatters.eq = function (value, arg) {
+            return value === arg;
+        }
 
-        rivets.bind(document.getElementById('maindiv'), {
-            data: this.rivetsData
-        });
-        rivets.bind(document.getElementById('mobileDiv'), {
-            data: this.rivetsData
-        });
-        rivets.bind(document.getElementById('mobileButtons'), {
-            data: this.rivetsData
-        });
-
-        this.detectBrowser();
+        // 4. Deferred heavy initialization
         this.createDB();
         this.retrieveSettings();
-
-        $('#topPanel').show();
-        $('#errorOuter').show();
     }
 
     detectBrowser() {
@@ -238,23 +254,25 @@ class MyClass {
     }
 
     onAnimationFrame() {
-        window.requestAnimationFrame(myClass.onAnimationFrame);
+        window.requestAnimationFrame(() => this.onAnimationFrame());
 
-        myClass.rivetsData.inputController.processGamepad();
-        myClass.rivetsData.inputController.updateControls();
+        if (this.rivetsData.inputController) {
+            this.rivetsData.inputController.processGamepad();
+            this.rivetsData.inputController.updateControls();
+        }
     }
 
     async initModule() {
-        myClass.initCount++;
-        myClass.finishInitialization();
+        this.initCount++;
+        this.finishInitialization();
         console.log('module initialized');
     }
 
     //need to wait for both indexedDB and wasm runtime
     finishInitialization() {
-        if (myClass.initCount == 2) {
-            myClass.rivetsData.moduleInitializing = false;
-            myClass.rivetsData.message = '';
+        if (this.initCount >= 2) {
+            this.rivetsData.moduleInitializing = false;
+            this.rivetsData.message = '';
 
             $('#githubDiv').show();
             this.loading = false;
@@ -664,9 +682,9 @@ class MyClass {
 
         this.rivetsData.inputController.setupMobileControls('divTouchSurface');
 
-        $("#mobileDiv").show();
-        $("#maindiv").hide();
-        $('#canvasDiv').appendTo("#mobileCanvas");
+        // $("#mobileDiv").show(); // Obsolete
+        // $("#maindiv").hide(); // Obsolete
+        // $('#canvasDiv').appendTo("#mobileCanvas"); // Obsolete
 
         document.getElementById('maindiv').classList.remove('container');
 
@@ -920,28 +938,53 @@ class MyClass {
     fullscreen() {
         let el = document.getElementById('canvasDiv');
 
+        // Before entering fullscreen, ensure we are in 'fit' mode or similar to fill screen
+        this.rivetsData.displayMode = 'fit';
+        this.resizeCanvas();
+
         if (el.webkitRequestFullScreen) {
             el.webkitRequestFullScreen();
-        } else {
+        } else if (el.mozRequestFullScreen) {
             el.mozRequestFullScreen();
+        } else if (el.requestFullscreen) {
+            el.requestFullscreen();
         }
+    }
+
+    setDisplayMode(mode) {
+        if (mode === 'fullscreen') {
+            this.fullscreen();
+            return;
+        }
+        this.rivetsData.displayMode = mode;
+        this.resizeCanvas();
     }
 
     resizeCanvas() {
         const baseWidth = 640;
         const baseHeight = 480;
 
-        const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
+        const canvasDiv = document.getElementById('canvasDiv');
+        const canvas = document.getElementById('canvas');
+        if (!canvasDiv || !canvas) return;
 
-        const scale = Math.min(windowWidth / baseWidth, windowHeight / baseHeight);
-        const canvas = document.getElementById('canvasDiv');
+        if (this.rivetsData.displayMode === 'original') {
+            canvasDiv.style.width = `${baseWidth}px`;
+            canvasDiv.style.height = `${baseHeight}px`;
+            canvasDiv.style.margin = '0 auto';
+        } else if (this.rivetsData.displayMode === 'fit') {
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            const scale = Math.min(windowWidth / baseWidth, windowHeight / baseHeight);
 
+            canvasDiv.style.width = `${baseWidth * scale}px`;
+            canvasDiv.style.height = `${baseHeight * scale - 7}px`;
+            canvasDiv.style.margin = '0 auto';
+        }
+
+        // Ensure internal resolution is always 640x480
         canvas.width = baseWidth;
         canvas.height = baseHeight;
-
-        canvas.style.width = `${baseWidth * scale}px`;
-        canvas.style.height = `${baseHeight * scale - 7}px`;
     }
 
     saveDrive() {
@@ -1827,14 +1870,13 @@ class MyClass {
     }
 }
 
-let myClass = new MyClass();
+const myClass = new MyClass();
 window["myApp"] = myClass;
-//so that I can reference from EM_ASM
 
 window["Module"] = {
-    onRuntimeInitialized: myClass.initModule,
+    onRuntimeInitialized: () => myClass.initModule(),
     print: (text) => myClass.processPrintStatement(text),
-}
+};
 
 //sleep module
 window.addEventListener("message", myClass.sleepHandler, {
@@ -1846,10 +1888,6 @@ window.onerror = function (message) {
     myClass.onError(message);
 }
 
-window["Module"] = {
-    onRuntimeInitialized: myClass.initModule,
-    print: (text) => myClass.processPrintStatement(text),
-}
 
 //sleep module
 window.addEventListener("message", myClass.sleepHandler, {
@@ -1857,4 +1895,4 @@ window.addEventListener("message", myClass.sleepHandler, {
 });
 
 
-window.addEventListener('resize', myApp.resizeCanvas);
+window.addEventListener('resize', () => myClass.resizeCanvas());
