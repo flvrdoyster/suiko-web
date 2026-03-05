@@ -41,8 +41,6 @@ class MyClass {
         this.singleFileUpload = false;
         this.loading = true;
         this.isoName = '';
-        this.loginModalOpened = false;
-        this.noCloudSave = true;
         this.dosSaveStates = [];
         this.allSaveStates = [];
         this.baseHardDrive = new Uint8Array();
@@ -53,7 +51,6 @@ class MyClass {
         this.autoKeyboard = false;
         this.autoKeyboardTimer = 0;
         this.autoKeyboardInterval = 48 * 180;
-        //three minutes (audioprocessrecurring gets called 48 times a second)
         this.lastCalledTime = new Date();
         this.fpscounter = 0;
         this.currentfps = 0;
@@ -66,21 +63,17 @@ class MyClass {
         this.doswasmxBatFound = false;
         this.parsingCommands = '';
         this.specialFileHandlers = ['.7z', '.zip', '.bin', '.cue', '.img', '.iso'];
-    
+
         this.rivetsData = {
             mobileMode: false,
             darkMode: false,
             inputController: null,
             cpu: 'max',
             beforeEmulatorStarted: true,
-            loggedIn: false,
-            romList: [],
-            password: '',
             message: '',
             moduleInitializing: true,
             dblistDisks: [],
             settings: {
-                CLOUDSAVEURL: "https://jfkskw.duckdns.org:17875",
                 DEFAULTIMG: ""
             },
             isoMounted: false,
@@ -99,10 +92,10 @@ class MyClass {
             startupScript: '',
         }
 
-        rivets.formatters.ev = function(value, arg) {
+        rivets.formatters.ev = function (value, arg) {
             return eval(value + arg);
         }
-        rivets.formatters.ev_string = function(value, arg) {
+        rivets.formatters.ev_string = function (value, arg) {
             let eval_string = "'" + value + "'" + arg;
             return eval(eval_string);
         }
@@ -133,7 +126,7 @@ class MyClass {
                 iosVersion = iosVersion.substring(0, iosVersion.indexOf(' '));
                 iosVersion = iosVersion.substring(0, iosVersion.indexOf('_'));
                 this.iosVersion = parseInt(iosVersion);
-            } catch (err) {}
+            } catch (err) { }
         }
         if (window.innerWidth < 600 || this.iosMode)
             this.rivetsData.mobileMode = true;
@@ -194,11 +187,11 @@ class MyClass {
 
         console.log(file);
         var reader = new FileReader();
-        reader.onprogress = function(event) {
+        reader.onprogress = function (event) {
             myClass.handleProgress(event, file);
         }
-        ;
-        reader.onload = function(e) {
+            ;
+        reader.onload = function (e) {
             console.log('finished loading');
             var byteArray = new Uint8Array(this.result);
             myClass.LoadEmulator(byteArray);
@@ -223,8 +216,6 @@ class MyClass {
     }
 
     configureEmulator() {
-        if (this.rivetsData.password)
-            this.loginSilent();
 
         let size = localStorage.getItem('doswasmx-height');
         if (size) {
@@ -237,7 +228,7 @@ class MyClass {
             this.setupMobileMode();
             $('#githubDiv').hide();
             $('#errorMobile').show();
-        } 
+        }
         this.resizeCanvas();
 
         $('#canvasDiv').show();
@@ -273,33 +264,8 @@ class MyClass {
         }
     }
 
-    async playGame(loadNetwork) {
-        const name = 'hdd.img'; // game file
-        if (loadNetwork) {
-            const pass = localStorage.getItem("saveGamePass") ?? prompt("비밀번호 입력:\n(4 ~ 10자리 영문 대소문자, 숫자)");
-
-            if (!pass)
-                return;
-
-            if (pass.length < 4 ||
-                pass.length > 10 ||
-                !/^[0-9A-Za-z]+$/.test(pass))
-                return toastr.error('올바르지 않은 패스워드 입니다.');
-
-            const rst = await fetch(`${this.rivetsData.settings.CLOUDSAVEURL}/load_data?pass=${pass}`);
-
-            if (!rst.ok) 
-                return toastr.error('올바르지 않은 패스워드 입니다.');
-
-            const r = JSON.parse(await rst.text());
-
-            if (!r.data || r.data.result === 'fail') 
-                return toastr.error('올바르지 않은 패스워드 입니다.');
-
-            localStorage.setItem("saveGameBase64String", r.data.data);
-            localStorage.setItem("saveGamePass", pass);
-            toastr.success('네트워크 로딩 성공');
-        }
+    async playGame() {
+        const name = 'game.img'; // game file
 
         $('.ExecRom').hide();
         $('#githubDiv').hide();
@@ -313,7 +279,7 @@ class MyClass {
             let receivedLength = 0;
             let chunks = [];
 
-            reader.read().then(function process({done, value}) {
+            reader.read().then(function process({ done, value }) {
                 if (done) {
                     const fullArray = new Uint8Array(receivedLength);
 
@@ -390,11 +356,11 @@ class MyClass {
 
         console.log(file);
         var reader = new FileReader();
-        reader.onprogress = function(event) {
+        reader.onprogress = function (event) {
             myClass.handleProgress(event, file);
         }
-        ;
-        reader.onload = function(e) {
+            ;
+        reader.onload = function (e) {
             console.log('finished loading');
             var byteArray = new Uint8Array(this.result);
             myClass.LoadEmulator(byteArray);
@@ -469,7 +435,7 @@ class MyClass {
 
         var reader = new FileReader();
 
-        reader.onprogress = function(event) {
+        reader.onprogress = function (event) {
             // console.log('loaded: ' + event.loaded);
             let loaded = event.loaded;
             let total = event.total;
@@ -483,8 +449,8 @@ class MyClass {
             document.getElementById('myProgress').style.width = percent + '%';
             document.getElementById('myProgress').innerHTML = formatted;
         }
-        ;
-        reader.onload = function(e) {
+            ;
+        reader.onload = function (e) {
             var byteArray = new Uint8Array(this.result);
             myClass.multiFiles.push({
                 name: file.name,
@@ -531,7 +497,7 @@ class MyClass {
                 this.img_loaded = true;
                 this.noIso = true;
                 this.LoadEmulator();
-            } else if (this.rivetsData.initialInstallation || !this.rivetsData.loggedIn) {
+            } else if (this.rivetsData.initialInstallation) {
                 if (this.rivetsData.dblistDisks.length == 0) {
                     if (this.rivetsData.settings.DEFAULTIMG) {
                         this.load_file(this.rivetsData.settings.DEFAULTIMG);
@@ -565,8 +531,8 @@ class MyClass {
 
         //write font file
         let responseText = await $.ajax({
-            url: 'main.ttf',
-            beforeSend: function(xhr) {
+            url: 'emulator.ttf',
+            beforeSend: function (xhr) {
                 xhr.overrideMimeType("text/plain; charset=x-user-defined");
             }
         });
@@ -574,7 +540,7 @@ class MyClass {
         for (let i = 0; i < responseText.length; i++) {
             responseBytes[i] = responseText.charCodeAt(i) & 0xff;
         }
-        console.log('main.ttf', responseText.length);
+        console.log('emulator.ttf', responseText.length);
         Module.FS.writeFile('/res/arial.ttf', responseBytes);
 
         //write dosbox.conf
@@ -582,7 +548,7 @@ class MyClass {
         let file = './dosbox-x-for-web.conf?v=' + rando;
         responseText = await $.ajax({
             url: './' + file,
-            beforeSend: function(xhr) {
+            beforeSend: function (xhr) {
                 xhr.overrideMimeType("text/plain; charset=x-user-defined");
             }
         });
@@ -620,8 +586,8 @@ class MyClass {
                 }
             } else {
                 responseText = responseText.replace('[autoexec]', '[autoexec]\r\n' + 'imgmake \"' + this.base_name + ".img\" -t " + this.initialHardDrive + "\r\n" + 'imgmount c \"' + this.base_name + ".img\r\n" + 'mount e .\r\n' + 'e:\r\ncd uploaded\r\n'//the reason we don't want to copy to the c drive on initial install
-                //is because the copy operation is super slow
-                //'xcopy e:\\uploaded\\*.* c:\\uploaded /I /E\r\nmount -u e\r\nc:\r\ncd uploaded\r\n'
+                    //is because the copy operation is super slow
+                    //'xcopy e:\\uploaded\\*.* c:\\uploaded /I /E\r\nmount -u e\r\nc:\r\ncd uploaded\r\n'
                 );
             }
         } else if (this.noIso) {
@@ -717,7 +683,7 @@ class MyClass {
             // For Safari
             document.documentElement.scrollTop = 0;
             // For Chrome, Firefox, IE and Opera
-        } catch (error) {}
+        } catch (error) { }
     }
 
     sanitizeName(name) {
@@ -812,22 +778,22 @@ class MyClass {
             sampleRate: 48000,
         });
 
-        await this.audioContext.audioWorklet.addModule('worklet-processor.js');
+        await this.audioContext.audioWorklet.addModule('audio-worklet.js');
 
         this.gainNode = this.audioContext.createGain();
         this.gainNode.gain.value = 1;
         this.gainNode.connect(this.audioContext.destination);
 
-        this.pcmPlayer = new AudioWorkletNode(this.audioContext,'pcm-processor',{
+        this.pcmPlayer = new AudioWorkletNode(this.audioContext, 'pcm-processor', {
             outputChannelCount: [2]
         });
 
         this.pcmPlayer.connect(this.gainNode);
 
-        this.audioBufferResampled = new Int16Array(Module.HEAP16.buffer,Module._neilGetSoundBufferResampledAddress(),64000);
+        this.audioBufferResampled = new Int16Array(Module.HEAP16.buffer, Module._neilGetSoundBufferResampledAddress(), 64000);
         this.audioWritePosition = Module._neilGetAudioWritePosition();
 
-        setInterval( () => {
+        setInterval(() => {
             if (this.beforeEmulatorStarted)
                 return;
 
@@ -838,7 +804,7 @@ class MyClass {
 
             if (this.lastHeapLength !== heaplength) {
                 console.log('recreating audio buffer');
-                this.audioBufferResampled = new Int16Array(Module.HEAP16.buffer,Module._neilGetSoundBufferResampledAddress(),64000);
+                this.audioBufferResampled = new Int16Array(Module.HEAP16.buffer, Module._neilGetSoundBufferResampledAddress(), 64000);
                 this.lastHeapLength = heaplength;
             }
 
@@ -850,7 +816,7 @@ class MyClass {
                 writePosition: this.audioWritePosition,
             });
         }
-        , 16);
+            , 16);
     }
 
     countFPS() {
@@ -908,7 +874,7 @@ class MyClass {
         req.onerror = () => console.log(`Error loading ${path}: ${req.statusText}`);
         req.responseType = "arraybuffer";
 
-        req.onprogress = function(event) {
+        req.onprogress = function (event) {
             let loaded = event.loaded;
             let total = event.total;
             let percent = (loaded / total) * 100;
@@ -921,8 +887,8 @@ class MyClass {
             document.getElementById('myProgress').style.width = percent + '%';
             document.getElementById('myProgress').innerHTML = formatted;
         }
-        ;
-        req.onload = function(e) {
+            ;
+        req.onload = function (e) {
             console.log('request loaded', e, req);
             var arrayBuffer = req.response;
             // Note: not oReq.responseText
@@ -931,9 +897,6 @@ class MyClass {
                     console.log('request returned 404');
 
                     // TODO - this code might not work anymore
-                    if (myClass.rivetsData.loggedIn) {
-                        myClass.load_file(myClass.rivetsData.settings.DEFAULTIMG);
-                    }
                 } else if (arrayBuffer) {
                     var byteArray = new Uint8Array(arrayBuffer);
                     myClass.LoadEmulator(byteArray);
@@ -947,7 +910,7 @@ class MyClass {
                 toastr.error('Error Loading Save');
             }
         }
-        ;
+            ;
 
         req.send();
     }
@@ -1078,25 +1041,25 @@ class MyClass {
         }
 
         var request = indexedDB.open('DOSWASMXDB');
-        request.onupgradeneeded = function(ev) {
+        request.onupgradeneeded = function (ev) {
             console.log('upgrade needed');
             let db = ev.target.result;
             let objectStore = db.createObjectStore('DOSWASMXSTATES', {
                 autoIncrement: true
             });
-            objectStore.transaction.oncomplete = function(event) {
+            objectStore.transaction.oncomplete = function (event) {
                 console.log('db created');
             }
-            ;
+                ;
         }
 
-        request.onsuccess = function(ev) {
+        request.onsuccess = function (ev) {
             var db = ev.target.result;
             var romStore = db.transaction("DOSWASMXSTATES", "readwrite").objectStore("DOSWASMXSTATES");
             try {
                 //rewrote using cursor instead of getAllKeys
                 //for compatibility with MS EDGE
-                romStore.openCursor().onsuccess = function(ev) {
+                romStore.openCursor().onsuccess = function (ev) {
                     var cursor = ev.target.result;
                     if (cursor) {
                         let rom = cursor.key.toString();
@@ -1129,9 +1092,7 @@ class MyClass {
     }
 
     findSavestateInDatabase() {
-        let imgKey = myClass.base_name;
-        if (!myClass.rivetsData.loggedIn)
-            imgKey = 'win95';
+        let imgKey = 'win95';
         imgKey += +'.savestate';
 
         myClass.dblistSavestates.forEach(save => {
@@ -1158,13 +1119,11 @@ class MyClass {
         console.log('save to database called: ', data.length);
 
         var request = indexedDB.open('DOSWASMXDB');
-        request.onsuccess = function(ev) {
+        request.onsuccess = function (ev) {
             var db = ev.target.result;
             var transaction = db.transaction("DOSWASMXSTATES", "readwrite");
             var romStore = transaction.objectStore("DOSWASMXSTATES");
-            let imgKey = myClass.base_name;
-            if (!myClass.rivetsData.loggedIn)
-                imgKey = 'win95';
+            let imgKey = 'win95';
 
             if (saveType == SaveTypes.Savestate) {
                 imgKey = imgKey + '.savestate';
@@ -1180,21 +1139,21 @@ class MyClass {
             }
 
             var addRequest = romStore.put(data, imgKey);
-            addRequest.onsuccess = function(event) {
+            addRequest.onsuccess = function (event) {
                 console.log('data onsuccess');
                 //these take a long time so we want to let the user know
                 if (saveType != SaveTypes.Savestate) {
                     toastr.info('Please Wait...');
                 }
             }
-            ;
-            addRequest.onerror = function(event) {
+                ;
+            addRequest.onerror = function (event) {
                 toastr.error('Error Saving Data');
                 console.log('error adding data');
                 console.log(event);
             }
-            ;
-            transaction.oncomplete = function(event) {
+                ;
+            transaction.oncomplete = function (event) {
                 console.log('transaction completed');
                 if (saveType == SaveTypes.Savestate) {
                     myClass.showToast("State Saved")
@@ -1208,13 +1167,11 @@ class MyClass {
                     myClass.showToast("Base Image Saved")
                     toastr.info('Base Image Saved');
                     myClass.baseImageSaved = true;
-                    myClass.cacheIsoAndBaseImage();
                 }
                 if (saveType == SaveTypes.ISO) {
                     myClass.showToast("ISO Saved")
                     toastr.info('ISO Saved');
                     myClass.isoSaved = true;
-                    myClass.cacheIsoAndBaseImage();
 
                 }
             }
@@ -1228,12 +1185,10 @@ class MyClass {
      */
     loadFromDatabase(saveType) {
         var request = indexedDB.open('DOSWASMXDB');
-        request.onsuccess = function(ev) {
+        request.onsuccess = function (ev) {
             var db = ev.target.result;
             var romStore = db.transaction("DOSWASMXSTATES", "readwrite").objectStore("DOSWASMXSTATES");
-            let imgKey = myClass.base_name;
-            if (!myClass.rivetsData.loggedIn)
-                imgKey = 'win95';
+            let imgKey = 'win95';
 
             if (saveType == SaveTypes.Savestate) {
                 imgKey = imgKey + '.savestate';
@@ -1249,7 +1204,7 @@ class MyClass {
             }
 
             var rom = romStore.get(imgKey);
-            rom.onsuccess = function(event) {
+            rom.onsuccess = function (event) {
                 if (saveType == SaveTypes.Savestate) {
                     let byteArray = rom.result;
                     //Uint8Array
@@ -1263,7 +1218,7 @@ class MyClass {
                         let imgName = '/' + myClass.base_name + '.img';
                         Module.FS.writeFile(imgName, byteArray);
                         myClass.sendDosCommands('imgmount c \"' + myClass.base_name + ".img\na:\n");
-                    } else if (!myClass.rivetsData.loggedIn) {
+                    } else {
                         let byteArray = rom.result;
                         //Uint8Array
                         let imgName = '/' + myClass.base_name + '.img';
@@ -1271,8 +1226,6 @@ class MyClass {
                         console.log('loaded drive from db: ' + imgName);
                         myClass.img_loaded = true;
                         myClass.LoadEmulator();
-                    } else {//TODO - if we are logged in then this is the
-                    //base image so we need to apply the diff drive
                     }
                 }
                 if (saveType == SaveTypes.ISO || saveType == SaveTypes.BaseImage) {
@@ -1281,12 +1234,12 @@ class MyClass {
                     myClass.LoadEmulator(byteArray);
                 }
             }
-            ;
-            rom.onerror = function(event) {
+                ;
+            rom.onerror = function (event) {
                 toastr.error('error getting rom from store');
             }
         }
-        request.onerror = function(ev) {
+        request.onerror = function (ev) {
             toastr.error('error loading from db')
         }
 
@@ -1301,20 +1254,20 @@ class MyClass {
         }
 
         var request = indexedDB.open('DOSWASMXDB');
-        request.onsuccess = function(ev) {
+        request.onsuccess = function (ev) {
             var db = ev.target.result;
             var transaction = db.transaction("DOSWASMXSTATES", "readwrite");
             let request = transaction.objectStore("DOSWASMXSTATES").delete(romToDelete);
 
             try {
                 // report that the data item has been deleted
-                transaction.oncomplete = function() {
+                transaction.oncomplete = function () {
                     if (!slient)
                         toastr.success('Hard Drive Deleted');
                     $('#settingsModal').modal('hide');
                     myClass.rivetsData.dblistDisks = [];
                 }
-                ;
+                    ;
 
             } catch (error) {
                 toastr.error('Error Deleting Disk');
@@ -1346,23 +1299,23 @@ class MyClass {
 
     clearDatabase() {
         var request = indexedDB.deleteDatabase('DOSWASMXDB');
-        request.onerror = function(event) {
+        request.onerror = function (event) {
             console.log("Error deleting database.");
             toastr.error("Error deleting database");
         }
-        ;
+            ;
 
-        request.onsuccess = function(event) {
+        request.onsuccess = function (event) {
             console.log("Database deleted successfully");
             toastr.error("Database deleted successfully");
         }
-        ;
+            ;
 
     }
 
     async unzipFile(arrayBuffer) {
         const data = new Blob([arrayBuffer])
-        let file = new File([data],'win95.zip');
+        let file = new File([data], 'win95.zip');
 
         document.getElementById('myProgress').innerHTML = 'Decompressing...';
 
@@ -1445,26 +1398,7 @@ class MyClass {
     }
 
     async loadHardDriveDiffs(byteArray) {
-        let promise = new Promise(function(resolve, reject) {
-            let foundCloudDrive = false;
-
-            for (let i = 0; i < myClass.allSaveStates.length; i++) {
-                let element = myClass.allSaveStates[i];
-                if (element.Name == myClass.base_name + ".doswasmx") {
-                    foundCloudDrive = true;
-                    console.log('foundCloudDrive');
-                }
-            }
-
-            // we didnt find a cloud drive
-            if (!foundCloudDrive) {
-                resolve(byteArray);
-                return;
-            }
-        }
-        );
-
-        return promise;
+        return byteArray;
     }
 
     async applyHardDriveDiffs(byteArrayDiffs, resolve) {
@@ -1495,67 +1429,6 @@ class MyClass {
         resolve(newHardDrive);
     }
 
-    async saveNetwork(sav) {
-        if (!myApp.saveGameDataSync())
-            return !sav ? toastr.error('저장에 실패했습니다.') : null;
-
-        const pass = !sav ? prompt("저장할 비밀번호 입력:\n(4 ~ 10자리 영문 대소문자, 숫자)") : localStorage.getItem("saveGamePass");
-
-        if (typeof pass !== "string" ||
-            pass.length < 4 ||
-            pass.length > 10 ||
-            !/^[0-9A-Za-z]+$/.test(pass)) 
-            return !sav ? toastr.error('형식에 맞게 저장 비밀번호를 입력하세요.') : null;
-
-        const data = localStorage.getItem("saveGameBase64String");
-        const params = new URLSearchParams();
-
-        params.append('pass', pass);
-        params.append('data', data);
-
-        const rst = await fetch(this.rivetsData.settings.CLOUDSAVEURL + '/save_data', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: params.toString()
-        });
-
-        if (!rst.ok) 
-            return toastr.error('저장에 실패했습니다.');
-
-        const r = JSON.parse(await rst.text());
-
-        if (r.result === 'fail') 
-            return toastr.error('저장에 실패했습니다.');
-
-        toastr.success('네트워크 저장 완료.');
-        localStorage.setItem("saveGamePass", pass);
-    }
-
-    saveNetworkSync() {
-        const pass = localStorage.getItem("saveGamePass");
-
-        if (!pass ||
-            pass.length < 4 ||
-            pass.length > 10 ||
-            !/^[0-9A-Za-z]+$/.test(pass))
-            return 0;
-
-        myApp.saveGameDataSync();
-        const data = localStorage.getItem("saveGameBase64String");
-        const params = new URLSearchParams();
-
-        params.append('pass', pass);
-        params.append('data', data);
-
-        navigator.sendBeacon(this.rivetsData.settings.CLOUDSAVEURL + '/save_data', 
-            new Blob([params.toString()], {
-                type: 'application/x-www-form-urlencoded'
-            }));
-
-        return 1;
-    }
 
     async compressArrayBuffer(input) {
         //create the stream
@@ -1571,7 +1444,7 @@ class MyClass {
         let totalSize = 0;
         //go through each chunk and add it to the output
         while (true) {
-            const {value, done} = await reader.read();
+            const { value, done } = await reader.read();
             if (done)
                 break;
             output.push(value);
@@ -1604,7 +1477,7 @@ class MyClass {
         let totalSize = 0;
         //go through each chunk and add it to the output
         while (true) {
-            const {value, done} = await reader.read();
+            const { value, done } = await reader.read();
             if (done)
                 break;
             output.push(value);
@@ -1624,11 +1497,9 @@ class MyClass {
     exportHardDrive() {
         let imgName = this.base_name + '.img';
         let exportName = imgName;
-        if (!this.rivetsData.loggedIn) {
-            exportName = 'hdd.img';
-        }
+        exportName = 'game.img';
         let filearray = Module.FS.readFile('/' + imgName);
-        var file = new File([filearray],exportName,{
+        var file = new File([filearray], exportName, {
             type: "text/plain; charset=x-user-defined"
         });
 
@@ -1655,9 +1526,9 @@ class MyClass {
             Module.FS.writeFile('/' + relativePath, new Uint8Array(content));
         });
 
-        this.configuration.startupScript = 
-            'MOUNT E . \r\n' + 
-            'XCOPY E:\\SAVEDAT*.* C:\\GENSE\\SAVEDATA\\ /Y \r\n' + 
+        this.configuration.startupScript =
+            'MOUNT E . \r\n' +
+            'XCOPY E:\\SAVEDAT*.* C:\\GENSE\\SAVEDATA\\ /Y \r\n' +
             'MOUNT -u E \r\n';
     }
 
@@ -1669,28 +1540,28 @@ class MyClass {
             return 0;
 
         const filearray = Module.FS.readFile('/' + this.base_name + '.img');
-        const savedata = extractFAT16file(filearray.buffer, 
-            ['GENSE\\Savedata\\savedat1.dat', 
-            'GENSE\\Savedata\\savedat2.dat', 
-            'GENSE\\Savedata\\savedat3.dat', 
-            'GENSE\\Savedata\\savedat4.dat', 
-            'GENSE\\Savedata\\savedat5.dat', 
-            'GENSE\\Savedata\\savedat6.dat']);
+        const savedata = extractFAT16file(filearray.buffer,
+            ['GENSE\\Savedata\\savedat1.dat',
+                'GENSE\\Savedata\\savedat2.dat',
+                'GENSE\\Savedata\\savedat3.dat',
+                'GENSE\\Savedata\\savedat4.dat',
+                'GENSE\\Savedata\\savedat5.dat',
+                'GENSE\\Savedata\\savedat6.dat']);
 
         if (savedata.length <= 0)
             return toastr.error("세이브 파일이 없습니다."), 0;
 
         const jsZip = new JSZip();
 
-        const base64 = jsZip.sync(function() {
+        const base64 = jsZip.sync(function () {
             savedata.forEach(e => jsZip.file(e[0], e[1]));
 
             let data = null;
             jsZip.generateAsync({
-                type: 'base64', 
+                type: 'base64',
                 compression: 'DEFLATE',
-                compressionOptions: {level: 9}
-            }).then(function(content) {
+                compressionOptions: { level: 9 }
+            }).then(function (content) {
                 data = content;
             });
 
@@ -1733,7 +1604,7 @@ class MyClass {
 
         var reader = new FileReader();
 
-        reader.onprogress = function(event) {
+        reader.onprogress = function (event) {
             let loaded = event.loaded;
             let total = event.total;
 
@@ -1743,8 +1614,8 @@ class MyClass {
             // console.log('loaded: ' + event.loaded);
             myClass.rivetsData.importStatus = '(' + (index + 1) + ' of ' + files.length + ') ' + file.name + ' ' + loaded + 'MB / ' + total + 'MB';
         }
-        ;
-        reader.onload = function(e) {
+            ;
+        reader.onload = function (e) {
             var byteArray = new Uint8Array(this.result);
 
             if (myClass.rivetsData.noCopyImport || myClass.isSpecialHandler || myClass.rivetsData.changeFloppy || myClass.rivetsData.loadFloppy) {
@@ -1792,19 +1663,19 @@ class MyClass {
                             }
                             if (filename.toLocaleLowerCase().endsWith('.iso')) {
                                 importCommands += 'mount -u d\n' + //unmount existing iso if there is one
-                                'imgmount d \"' + filename + '\"\n';
+                                    'imgmount d \"' + filename + '\"\n';
                                 //mount new iso
                                 myClass.winNotFoundCommands = 'd:\n';
                             }
                             if (filename.toLocaleLowerCase().endsWith('.cue')) {
                                 importCommands += 'mount -u d\n' + //unmount existing iso if there is one
-                                'imgmount d \"' + filename + '\"\n';
+                                    'imgmount d \"' + filename + '\"\n';
                                 //mount new iso
                                 myClass.winNotFoundCommands = 'd:\n';
                             }
                             if (filename.toLocaleLowerCase().endsWith('.img')) {
                                 importCommands += 'mount -u c\n' + //unmount existing img if there is one
-                                'imgmount c \"' + filename + '\"\n';
+                                    'imgmount c \"' + filename + '\"\n';
                                 //mount new iso
                             }
                         }
@@ -1842,31 +1713,6 @@ class MyClass {
         Module._neil_exit_to_dos();
     }
 
-    cacheIsoAndBaseImage() {
-        if (!this.baseImageSaved) {
-            //pause emulator
-            Module._neil_toggle_pause();
-            this.saveToDatabase(this.baseHardDrive, SaveTypes.BaseImage);
-            return;
-        }
-
-        if (!this.isoSaved) {
-            try {
-                let bytes = Module.FS.readFile('/' + this.base_name + ".iso");
-                this.saveToDatabase(bytes, SaveTypes.ISO);
-                return;
-            } catch (error) {
-                console.log('no iso found');
-                //this means we did not have an iso                
-            }
-        }
-
-        Module._neil_toggle_pause();
-
-        //reset variables
-        this.baseImageSaved = false;
-        this.isoSaved = false;
-    }
 
     convertCSharpDateTime(initialDate) {
         let dateString = initialDate;
@@ -1876,7 +1722,7 @@ class MyClass {
         let timeComponents = timeString.split(':');
         let myDate = null;
 
-        myDate = new Date(parseInt(dateComponents[0]),parseInt(dateComponents[1]) - 1,parseInt(dateComponents[2]),parseInt(timeComponents[0]),parseInt(timeComponents[1]),parseInt(timeComponents[2]));
+        myDate = new Date(parseInt(dateComponents[0]), parseInt(dateComponents[1]) - 1, parseInt(dateComponents[2]), parseInt(timeComponents[0]), parseInt(timeComponents[1]), parseInt(timeComponents[2]));
         return myDate;
     }
 
@@ -1958,10 +1804,10 @@ class MyClass {
             toastr.success("Passed integrity check");
         }
 
-        setTimeout( () => {
+        setTimeout(() => {
             myClass.rivetsData.message = '';
         }
-        , 2000);
+            , 2000);
 
         Module._neil_toggle_pause();
 
@@ -1994,41 +1840,6 @@ class MyClass {
         Module._neil_toggle_always_use_backbuffer();
     }
 
-    toggleAutoKeybaord() {
-        this.autoKeyboard = !this.autoKeyboard;
-
-        if (this.autoKeyboard) {
-            this.autoKeyboardTimer = this.autoKeyboardInterval;
-            toastr.info('Auto Keyboard Enabled');
-        } else {
-            toastr.info('Auto Keyboard Disabled');
-        }
-    }
-
-    //used to automate keyboard buttons on a timer (useful for certain games)
-    tickAutoKeyboard() {
-        this.autoKeyboardTimer--;
-        if (this.autoKeyboardTimer == 0) {
-            this.showToast("Autokeyboard...")
-
-            this.sendKey(48)
-            //F12
-
-            setTimeout( () => {
-                myClass.sendKey(52);
-                //enter
-            }
-            , 600);
-
-            setTimeout( () => {
-                myClass.sendKey(52);
-                //enter
-            }
-            , 3000);
-
-            this.autoKeyboardTimer = this.autoKeyboardInterval;
-        }
-    }
 
     turboSpeed() {
         Module._neil_turbo();
@@ -2051,7 +1862,7 @@ class MyClass {
             return;
         }
         if (name == 'neil-update-frame') {
-            let rgbSource = new Uint8Array(Module.HEAPU8.buffer,props.pointer,this.frameWidth * this.frameHeight * 4);
+            let rgbSource = new Uint8Array(Module.HEAPU8.buffer, props.pointer, this.frameWidth * this.frameHeight * 4);
 
             myClass.updateCanvas(rgbSource);
             return;
@@ -2087,7 +1898,7 @@ class MyClass {
         // this.resizeCanvas();
         // document.getElementById('canvasDiv').style.display = 'block';
         // this.rivetsData.emulatorStarted = true;
-        setTimeout( () => {
+        setTimeout(() => {
             Module.messageHandler({
                 data: {
                     name: 'wc-run',
@@ -2097,7 +1908,7 @@ class MyClass {
                 }
             })
         }
-        , 50);
+            , 50);
     }
 
     printError(text) {
@@ -2119,7 +1930,7 @@ class MyClass {
             }
         }
 
-        myClass.ctx.putImageData(new ImageData(this.rgbaDestination,this.frameWidth,this.frameHeight), 0, 0);
+        myClass.ctx.putImageData(new ImageData(this.rgbaDestination, this.frameWidth, this.frameHeight), 0, 0);
     }
 
     canvasClick() {
@@ -2156,7 +1967,7 @@ window.addEventListener("message", myClass.sleepHandler, {
     passive: true
 });
 
-window.onerror = function(message) {
+window.onerror = function (message) {
     console.log('window.onerror', message);
     myClass.onError(message);
 }
@@ -2171,9 +1982,8 @@ window.addEventListener("message", myClass.sleepHandler, {
     passive: true
 });
 
-window.addEventListener("beforeunload", function(e) {
-    if (!myApp.saveNetworkSync())
-        myApp.saveGameDataSync();
+window.addEventListener("beforeunload", function (e) {
+    myApp.saveGameDataSync();
 
     e.preventDefault();
     e.returnValue = "";
