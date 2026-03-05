@@ -13,138 +13,11 @@
     <script src="./vendor/bootstrap/bootstrap.min.js"></script>
     <script src="./vendor/toastr/toastr.min.js"></script>
     <link rel="stylesheet" href="./vendor/toastr/toastr.min.css">
+    <link rel="stylesheet" href="style.css">
     <script src="./vendor/FileSaver.min.js"></script>
     <script src="./vendor/nipplejs.min.js"></script>
     <script src="./vendor/jszip.min.js"></script>
 </head>
-<style>
-    .githubDiv a {
-        color: black;
-    }
-
-    .divTouchSurface {
-        color: lightgray;
-    }
-
-    .darkMode {
-        background-color: black;
-        color: white;
-
-        .modal-content {
-            background-color: black;
-            border: 3px solid white;
-        }
-
-        .githubDiv a {
-            color: white;
-        }
-
-        .divTouchSurface {
-            background-color: black;
-        }
-
-        .lightpurple {
-            background-color: rgb(30, 30, 30);
-            color: gray;
-        }
-
-        .darkpurple {
-            background-color: rgb(45, 30, 30);
-            color: gray;
-        }
-
-        .divTouchSurface {
-            color: gray;
-        }
-
-        .buttonhold {
-            background-color: darkslategray;
-        }
-
-        .mobileButtons {
-            background-color: black;
-        }
-
-        .menuDiv {
-            color: black;
-        }
-    }
-
-    .spinner {
-        display: inline-block;
-        width: 14px;
-        height: 14px;
-        border: 2px solid rgba(128, 128, 128, 0.2);
-        border-top-color: #007bff;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        vertical-align: middle;
-        margin-right: 0.5em;
-    }
-
-    @keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
-    }
-
-    .progress {
-        height: 2rem;
-        font-size: 1rem;
-    }
-
-    .settingsTitle {
-        vertical-align: top;
-        padding-top: 10px;
-    }
-
-    .lightpurple {
-        background-color: rgb(189, 174, 173);
-    }
-
-    .darkpurple {
-        background-color: rgb(238, 21, 21);
-        background-color: rgb(199, 199, 230);
-    }
-
-    .buttonhold {
-        background-color: lightsalmon;
-    }
-
-    #afterLoadDiv {
-        display: none;
-        position: absolute;
-        left: 50%;
-        transform: translate(-50%, 0);
-    }
-
-    .hover-zone {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 50px;
-        z-index: 10;
-    }
-
-    .hover-zone:hover #afterLoadDiv {
-        display: block;
-    }
-
-    body,
-    html {
-        margin: 0;
-        height: 100%;
-        background-color: black;
-    }
-
-    #canvasDiv {
-        padding: 0;
-        display: none;
-        margin-left: auto;
-        margin-right: auto;
-    }
-</style>
 
 <body>
     <div id="maindiv" class="container text-center">
@@ -202,115 +75,11 @@
     <h6 id="githubDiv" class="githubDiv card-title mt-4 text-center" style="display: none;">
         <a href="https://github.com/nbarkhina/doswasmx" target="_blank" style="color: white;">
             원작자 GitHub
-            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyRpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoTWFjaW50b3NoKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpFNTE3OEEyQTk5QTAxMUUyOUExNUJDMTA0NkE4OTA0RCIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDpFNTE3OEEyQjk5QTAxMUUyOUExNUJDMTA0NkE4OTA0RCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkU1MTc4QTI4OTlBMDExRTI5QTE1QkMxMDQ2QTg5MDREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOkU1MTc4QTI5OTlBMDExRTI5QTE1QkMxMDQ2QTg5MDREIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+m4QGuQAAAyRJREFUeNrEl21ojWEYx895TDPbMNlBK46IUiNmPvHBSUjaqc0H8pF5+aDUKPEBqU2NhRQpX5Rv5jWlDIWlMCv7MMSWsWwmb3tpXub4XXWdPHvc9/Gc41nu+nedc7/8r/99PffLdYdDPsvkwsgkTBwsA/PADJCnzX2gHTwBt8Hl7p537/3whn04XoDZDcpBlk+9P8AFcAghzRkJwPF4zGGw0Y9QS0mAM2AnQj77FqCzrtcwB1Hk81SYojHK4DyGuQ6mhIIrBWB9Xm7ug/6B/nZrBHBegrkFxoVGpnwBMSLR9EcEcC4qb8pP14BWcBcUgewMnF3T34VqhWMFkThLJAalwnENOAKiHpJq1FZgI2AT6HZtuxZwR9GidSHtI30jOrbawxlVX78/AbNfhHlomEUJJI89O2MqeE79T8/nk8nMBm/dK576hZgmA3cp/R4l9/UeSxiHLVIlNm4nFfT0bxyuIj7LHRTKai+zdJobwMKzcZSJb0ePV5PKN+BqAAKE47UlMnERELMM3EdYP/yrd+XYb2mOiYBiQ8OQnoRBlXrl9JZix7D1pHTazu4MoyBcnYamqAjIMTR8G4FT8LuhLsexXYYjICBiqhQBvYb6fLZIJCjPypVvaOoVAW2WcasCnL2Nq82xHJNSqlCeFcDshaPK0twkAhosjZL31QYw+1rlMpWGMArl23SBsZZO58F2tlJXmjOXS+s4WGvpMiBJT/I2PInZ6lIs9/hBsNS1hS6BG0DSqmYEDRlCXQrmy50P1oDRKTSegmNbUsA0zDMwRhPJXeCE3vWLPQMvan6X8AgIa1vcR4AkGZkDR4ejJ1UHpsaVI0g2LInpOsNFUud1rhxSV+fzC9Woz2EZkWQuja7/B+jUrgtIMpy9YCW4n4K41YfzRneW5E1KJTe4B2Zq1Q5EHEtj4U3AfEzR5SVY4l7QYQPJdN2as7RKBF0BPZqqH4VgMAMBL8Byxr7y8zCZiDlnOcEKIPmUpgB5Z2ww5RdOiiRiNajUmWda5IG6WbhsyY2fx6m8gLcoJDJFkH219M3We1+cnda93pfycZpIJEL/s/wSYADmOAwAQgdpBAAAAABJRU5ErkJggg=="
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyRpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vY2FwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoTWFjaW50b3NoKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpFNTE3OEEyQTk5QTAxMUUyOUExNUJDMTA0NkE4OTA0RCIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDpFNTE3OEEyQjk5QTAxMUUyOUExNUJDMTA0NkE4OTA0RCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkU1MTc4QTI4OTlBMDExRTI5QTE1QkMxMDQ2QTg5MDREIiBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuZGlkOkU1MTc4QTI5OTlBMDExRTI5QTE1QkMxMDQ2QTg5MDREIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+m4QGuQAAAyRJREFUeNrEl21ojWByx895TDPbMNlBK46IUiNmPvHBSUjaqc0H8pF5+aDUKPEBqU2NhRQpX5Rv5jWlDIWlMCv7MMSWsWwmb3tpXub4XXWdPHvc9/Gc41nu+nedc7/8r/99PffLdYdDPsvkwsgkTBwsA/PADJAHzX2gHTwBt8Hl7p73733whn04XoDZDcpBlk+9P8AFcAghzRkJwPF4zGGw0Y9QS0mAM2AnQj77FqCzrtcwB1Hk81SYojHK4DyGuQ6mhIIrBWB9Xm7ug/6B/nZrBHBegrkFxoVGpnwBMSLR9EcEcC4qb8pP14BWcBcUgewMnF3T34VqhWMFkThLJAalwnENOAKiHpJq1FZgI2AT6HZtuxZwR9GidSHtI30jOrbawxlVX78/AbNfhHlomEUJJI89O2MqeE79T8/nk8nMBm/dK576hZgmA3cp/R4l9/UeSxiHLVIlNm4nFfT0bxyuIj7LHRTKai+zdJobwMKzcZSJb0ePV5PKN+BqAAKE47UlMnERELMM3EdYP/yrd+XYb2mOiYBiQ8OQnoRBlXrl9JZix7D1pHTazu4MoyBcnYamqAjIMTR8G4FT8LuhLsexXYYjICBiqhQBvYb6fLZIJCjPypVvaOoVAW2WcasCnL2Nq82xHJNSqlCeFcDshaPK0twkAhosjZL31QYw+1rlMpWGMArl23SBsZZO58F2tlJXmjOXS+s4WGvpMiBJT/I2PInZ6lIs9/hBsNS1hS6BG0DSqmYEDRlCXQrmy50P1oDRKTSegmNbUsA0zDMwRhPJXeCE3vWLPQMvan6X8AgIa1vcR4AkGZkDR4ejJ1UHpsaVI0g2LInpOsNFUud1rhxSV+fzC9Woz2EZkWQuja7/B+jUrgtIMpy9YCW4n4K41YfzRneW5E1KJTe4B2Zq1Q5EHEtj4U3AfEzR5SVY4l7QYQPJdN2as7RKBF0BPZqqH4VgMAMBL8Byxr7y8zCZiDlnOcEKIPmUpgB5Z2ww5RdOiiRiNajUmWda5IG6WbhsyY2fx6m8gLcoJDJFkH219M3We1+cnda93pfycZpIJEL/s/wSYADmOAwAQgdpBAAAAABJRU5ErkJggg=="
                 style="height: 25px; padding-bottom: 5px; padding-left: 10px; filter: invert(1);">
         </a>
     </h6>
 
-    <!-- Mobile UX -->
-    <div id="mobileButtons" class="mobileButtons" style="display: none;text-align: center;
-            padding-top: 20px;padding-bottom: 20px;">
-        <div style="margin-bottom: 10px;">
-            <div style="display: none;" id="errorMobile">
-                <div rv-if="data.lblError" class="alert alert-danger mt-4" id="lblError" role="alert"
-                    rv-html="data.lblError">
-                </div>
-            </div>
-            <button class="btn btn-primary mt-2 mb-2" onclick="myApp.newRom()">New Rom</button>
-            <div style="display: inline;">
-                <button type="button" class="btn btn-primary dropdown-toggle" onkeydown="myApp.dropdownKeyDown(event)"
-                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    고급 설정
-                </button>
-                <div class="dropdown-menu">
-                    <a class="dropdown-item" onclick="myApp.toggleFPS()" style="cursor: pointer;">성능 표시</a>
-                    <a class="dropdown-item" onclick="myApp.toggleOnscreenKeyboard()" style="cursor: pointer;">화상키보드</a>
-                    <a class="dropdown-item" onclick="myApp.btnDarkMode()" style="cursor: pointer;">야간 모드</a>
-                    <a class="dropdown-item" onclick="myApp.slowDown()" style="cursor: pointer;">시간 느리게</a>
-                    <a class="dropdown-item" onclick="myApp.speedUp()" style="cursor: pointer;">시간 빠르게</a>
-                    <a class="dropdown-item" onclick="myApp.mouseDecreaseSpeed()" style="cursor: pointer;">마우스 감도
-                        감소</a>
-                    <a class="dropdown-item" onclick="myApp.mouseIncreaseSpeed()" style="cursor: pointer;">마우스 감도
-                        향상</a>
-                    <a class="dropdown-item" onclick="myApp.importModal()" style="cursor: pointer;">파일 불러오기</a>
-                    <a class="dropdown-item" onclick="myApp.exportModal()" style="cursor: pointer;">파일 내보내기</a>
-                    <a class="dropdown-item" onclick="myApp.importModal('loadCD')" rv-hide="data.isoMounted"
-                        style="cursor: pointer;">CD 불러오기</a>
-                    <a class="dropdown-item" onclick="myApp.importModal('changeCD')" rv-if="data.isoMounted"
-                        style="cursor: pointer;">CD 바꾸기</a>
-                    <span rv-if="data.isDosMode"><a class="dropdown-item" onclick="myApp.importModal('loadFloppy')"
-                            rv-hide="data.floppyMounted" style="cursor: pointer;">Load Floppy</a></span>
-                    <a class="dropdown-item" onclick="myApp.importModal('changeFloppy')" rv-if="data.floppyMounted"
-                        style="cursor: pointer;">Change Floppy</a>
-                    <a class="dropdown-item" onclick="myApp.exportHardDrive()" style="cursor: pointer;">하드디스크 내보내기</a>
-                    <a class="dropdown-item" onclick="myApp.sendCtrlAltDel()" style="cursor: pointer;">
-                        Ctrl+Alt+Del 보내기</a>
-                    <a class="dropdown-item" onclick="myApp.togglePause()" style="cursor: pointer;">일시정지/재시작</a>
-                    <a class="dropdown-item" onclick="myApp.exitToDos()" style="cursor: pointer;">종료</a>
-                </div>
-            </div>
-        </div>
-        <div>
-            <button class="btn btn-secondary mt-2 mb-2" onclick="myApp.zoomOut()">Zoom Out</button>
-            <button class="btn btn-secondary mt-2 mb-2" onclick="myApp.zoomIn()">Zoom In</button>
-        </div>
-    </div>
-    <div id="mobileDiv" style="display: none;height: 100%;">
-        <div id="mobileCanvas">
-
-        </div>
-
-        <div id="mobileBottomPanel" style="font-size: 36px;height:100%;text-align: center!important;background: white;">
-            <table style="width: 100%;" cellpadding=0 cellspacing=0>
-                <tr>
-                    <td style="border-right: 1px solid rgb(72,72,72);width:50%;">
-                        <div id="mobileStart" class="lightpurple"
-                            rv-class-buttonhold="data.inputController.MobileStart">
-                            Dir
-                        </div>
-                    </td>
-                    <td>
-                        <div id="mobileSelect" class="lightpurple"
-                            rv-class-buttonhold="data.inputController.MobileSelect">
-                            KeyB
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="border-right: 1px solid rgb(72,72,72);">
-                        <div id="mobileB" class="darkpurple" rv-class-buttonhold="data.inputController.MobileB">
-                            MouseL
-                        </div>
-                    </td>
-                    <td>
-                        <div id="mobileA" class="darkpurple" rv-class-buttonhold="data.inputController.MobileA">
-                            MouseR
-                        </div>
-                    </td>
-                </tr>
-            </table>
-            <div style="margin-left: auto;margin-right: auto;width: 100%;height: 800px;">
-                <div id="divTouchSurface" class="divTouchSurface" style="position: absolute;width: 100%;height: 800px;">
-                    <div style="padding-top: 20px;" id="startDiv" style="-webkit-touch-callout: none; /* iOS Safari */
-                    -webkit-user-select: none; /* Safari */
-                     -khtml-user-select: none; /* Konqueror HTML */
-                       -moz-user-select: none; /* Old versions of Firefox */
-                        -ms-user-select: none; /* Internet Explorer/Edge */
-                            user-select: none; /* Non-prefixed version, currently
-                                                  supported by Chrome, Edge, Opera and Firefox */">
-                        Virtual Joystick
-                    </div>
-                </div>
-            </div>
-
-            <div id="menuDiv" class="menuDiv"
-                style="opacity: 0.5; background-color: rgba(243,244,244,1);width: 70px;position: absolute; top:0px;left:170px;font-size: 14px;">
-                -MENU-
-            </div>
-
-
-        </div>
-    </div>
 
     <script type="text/javascript">
         function loadJavaScriptRandom(filename) {
@@ -323,6 +92,7 @@
         }
 
         loadJavaScriptRandom('script.js');
+        loadJavaScriptRandom('keyboard.js');
         loadJavaScriptRandom('controls.js');
         loadJavaScriptRandom('dosbox.js');
         loadJavaScriptRandom('fat16.js');

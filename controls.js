@@ -200,7 +200,7 @@ class InputController {
         document.getElementById('canvas').addEventListener('mousemove', this.mouseMove.bind(this), false);
         document.getElementById('canvas').addEventListener('mousedown', this.mouseDown.bind(this), false);
         document.getElementById('canvas').addEventListener('mouseup', this.mouseUp.bind(this), false);
-        document.getElementById('canvas').addEventListener("mousewheel", function(event) {
+        document.getElementById('canvas').addEventListener("mousewheel", function (event) {
             if (event.deltaY > 0) {
                 window["myApp"].sendKey(85);
             } else {
@@ -219,13 +219,13 @@ class InputController {
             this.initNippleJS();
 
             //needed in conjuction with nippleJS otherwise iOS text selection will activate
-            document.getElementById(touch_element_id).addEventListener('touchstart', function(e) {
+            document.getElementById(touch_element_id).addEventListener('touchstart', function (e) {
                 e.preventDefault();
             }, false);
-            document.getElementById(touch_element_id).addEventListener('touchend', function(e) {
+            document.getElementById(touch_element_id).addEventListener('touchend', function (e) {
                 e.preventDefault();
             }, false);
-            document.getElementById(touch_element_id).addEventListener('touchmove', function(e) {
+            document.getElementById(touch_element_id).addEventListener('touchmove', function (e) {
                 e.preventDefault();
             }, false);
 
@@ -237,16 +237,16 @@ class InputController {
             document.getElementById('mobileB').addEventListener('touchend', this.mobileReleaseB.bind(this), false);
             document.getElementById('mobileStart').addEventListener('touchend', this.mobileReleaseStart.bind(this), false);
             document.getElementById('mobileSelect').addEventListener('touchend', this.mobileReleaseSelect.bind(this), false);
-            document.getElementById('mobileA').addEventListener('touchmove', function(e) {
+            document.getElementById('mobileA').addEventListener('touchmove', function (e) {
                 e.preventDefault();
             }, false);
-            document.getElementById('mobileB').addEventListener('touchmove', function(e) {
+            document.getElementById('mobileB').addEventListener('touchmove', function (e) {
                 e.preventDefault();
             }, false);
-            document.getElementById('mobileStart').addEventListener('touchmove', function(e) {
+            document.getElementById('mobileStart').addEventListener('touchmove', function (e) {
                 e.preventDefault();
             }, false);
-            document.getElementById('mobileSelect').addEventListener('touchmove', function(e) {
+            document.getElementById('mobileSelect').addEventListener('touchmove', function (e) {
                 e.preventDefault();
             }, false);
 
@@ -260,7 +260,7 @@ class InputController {
         this.MouseMoved = true;
 
         // if the osk is on we need to send the movements via sendDosControls()
-        if (window["myApp"].onscreenKeyboard) {
+        if (window["myApp"].keyboardController.visible) {
             this.VectorX = event.movementX;
             this.VectorY = event.movementY;
         }
@@ -494,16 +494,16 @@ class InputController {
 
     setGamePadButtons() {
         this.gamepadButtons = [];
-        this.gamepadButtons.push(new GamePadState(this.KeyMappings.Joy_Mapping_Left,this.KeyMappings.Mapping_Left));
-        this.gamepadButtons.push(new GamePadState(this.KeyMappings.Joy_Mapping_Right,this.KeyMappings.Mapping_Right));
-        this.gamepadButtons.push(new GamePadState(this.KeyMappings.Joy_Mapping_Down,this.KeyMappings.Mapping_Down));
-        this.gamepadButtons.push(new GamePadState(this.KeyMappings.Joy_Mapping_Up,this.KeyMappings.Mapping_Up));
-        this.gamepadButtons.push(new GamePadState(this.KeyMappings.Joy_Mapping_Action_Start,this.KeyMappings.Mapping_Action_Start));
-        this.gamepadButtons.push(new GamePadState(this.KeyMappings.Joy_Mapping_Action_B,this.KeyMappings.Mapping_Action_B));
-        this.gamepadButtons.push(new GamePadState(this.KeyMappings.Joy_Mapping_Action_A,this.KeyMappings.Mapping_Action_A));
-        this.gamepadButtons.push(new GamePadState(this.KeyMappings.Joy_Mapping_Action_L,this.KeyMappings.Mapping_Action_L));
-        this.gamepadButtons.push(new GamePadState(this.KeyMappings.Joy_Mapping_Action_R,this.KeyMappings.Mapping_Action_R));
-        this.gamepadButtons.push(new GamePadState(this.KeyMappings.Joy_Mapping_Menu,this.KeyMappings.Mapping_Menu));
+        this.gamepadButtons.push(new GamePadState(this.KeyMappings.Joy_Mapping_Left, this.KeyMappings.Mapping_Left));
+        this.gamepadButtons.push(new GamePadState(this.KeyMappings.Joy_Mapping_Right, this.KeyMappings.Mapping_Right));
+        this.gamepadButtons.push(new GamePadState(this.KeyMappings.Joy_Mapping_Down, this.KeyMappings.Mapping_Down));
+        this.gamepadButtons.push(new GamePadState(this.KeyMappings.Joy_Mapping_Up, this.KeyMappings.Mapping_Up));
+        this.gamepadButtons.push(new GamePadState(this.KeyMappings.Joy_Mapping_Action_Start, this.KeyMappings.Mapping_Action_Start));
+        this.gamepadButtons.push(new GamePadState(this.KeyMappings.Joy_Mapping_Action_B, this.KeyMappings.Mapping_Action_B));
+        this.gamepadButtons.push(new GamePadState(this.KeyMappings.Joy_Mapping_Action_A, this.KeyMappings.Mapping_Action_A));
+        this.gamepadButtons.push(new GamePadState(this.KeyMappings.Joy_Mapping_Action_L, this.KeyMappings.Mapping_Action_L));
+        this.gamepadButtons.push(new GamePadState(this.KeyMappings.Joy_Mapping_Action_R, this.KeyMappings.Mapping_Action_R));
+        this.gamepadButtons.push(new GamePadState(this.KeyMappings.Joy_Mapping_Menu, this.KeyMappings.Mapping_Menu));
 
     }
 
@@ -511,7 +511,7 @@ class InputController {
         try {
             if (e.gamepad.buttons.length > 0) {// this.message = '<b>Gamepad Detected:</b><br>' + e.gamepad.id;
             }
-        } catch (_a) {}
+        } catch (_a) { }
         console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.", e.gamepad.index, e.gamepad.id, e.gamepad.buttons.length, e.gamepad.axes.length);
     }
 
@@ -587,11 +587,11 @@ class InputController {
                     this.VectorX = horiz_axis * 9;
                     this.VectorY = vertical_axis * 9;
 
-                    if (window["myApp"].onscreenKeyboard) {
+                    if (window["myApp"].keyboardController.visible) {
                         this.VectorX *= 2;
                         this.VectorY *= 2;
                     }
-                } catch (error) {}
+                } catch (error) { }
 
             }
         } catch (error) {
@@ -600,7 +600,7 @@ class InputController {
     }
 
     sendKeyDownEvent(keyCode) {
-        let keyEvent = new KeyboardEvent('Gamepad Event Down',{
+        let keyEvent = new KeyboardEvent('Gamepad Event Down', {
             key: keyCode,
             keyCode: keyCode
         });
@@ -608,7 +608,7 @@ class InputController {
     }
 
     sendKeyUpEvent(keyCode) {
-        let keyEvent = new KeyboardEvent('Gamepad Event Up',{
+        let keyEvent = new KeyboardEvent('Gamepad Event Up', {
             key: keyCode,
             keyCode: keyCode
         });
@@ -778,7 +778,7 @@ class InputController {
         //RIGHT
 
         //we don't want to move the cursor around if the onscreen keyboard is displayed
-        if (window["myApp"].onscreenKeyboard) {
+        if (window["myApp"].keyboardController.visible) {
             mobileString = '0000';
         }
 
@@ -835,7 +835,7 @@ class InputController {
         if (mobileMode) // mobilemode
         {
             // if we are holding DIR button don't move the mouse
-            if (this.MobileStart && !window["myApp"].onscreenKeyboard) {
+            if (this.MobileStart && !window["myApp"].keyboardController.visible) {
                 xMove = 0;
                 yMove = 0;
             } else {

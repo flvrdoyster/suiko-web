@@ -11,7 +11,7 @@ class MyClass {
         this.ctx = this.canvas.getContext('2d');
         this.rgbaDestination = new Uint8ClampedArray(640 * 480 * 4);
         this.showFPS = true;
-        this.onscreenKeyboard = false;
+        this.keyboardController = new KeyboardController();
         this.lastHeapLength = 0;
         this.rom_name = '';
         this.rom_size = 0;
@@ -48,9 +48,6 @@ class MyClass {
         this.doIntegrityCheck = false;
         this.showLoadAndSavestate = false;
         this.loadSavestateAfterBoot = false;
-        this.autoKeyboard = false;
-        this.autoKeyboardTimer = 0;
-        this.autoKeyboardInterval = 48 * 180;
         this.lastCalledTime = new Date();
         this.fpscounter = 0;
         this.currentfps = 0;
@@ -796,8 +793,6 @@ class MyClass {
             if (this.beforeEmulatorStarted)
                 return;
 
-            if (this.autoKeyboard)
-                this.tickAutoKeyboard();
 
             const heaplength = Module.HEAPU8.length;
 
@@ -914,21 +909,12 @@ class MyClass {
         req.send();
     }
 
-    newRom() {
-        location.reload();
-    }
 
     onError(message) {
         console.log('error triggered', event);
         if (!message.includes('user has exited the lock')) {
             this.rivetsData.lblError = message;
         }
-    }
-
-    //prevent dropdown from popping up from keyboard events
-    dropdownKeyDown(e) {
-        e.preventDefault();
-        e.stopPropagation();
     }
 
     fullscreen() {
@@ -939,36 +925,6 @@ class MyClass {
         } else {
             el.mozRequestFullScreen();
         }
-    }
-
-    zoomIn() {
-        this.canvasHeight += 30;
-        localStorage.setItem('doswasmx-height', this.canvasHeight.toString());
-        this.resizeCanvas();
-        console.log('zoom in');
-    }
-
-    zoomOut() {
-        this.canvasHeight -= 30;
-        localStorage.setItem('doswasmx-height', this.canvasHeight.toString());
-        this.resizeCanvas();
-        console.log('zoom out');
-    }
-
-    mouseDecreaseSpeed() {
-        Module._neil_decrease_mouse_sensitivity();
-    }
-
-    mouseIncreaseSpeed() {
-        Module._neil_increase_mouse_sensitivity();
-    }
-
-    speedUp() {
-        Module._neilSpeedUp();
-    }
-
-    slowDown() {
-        Module._neilSlowDown();
     }
 
     resizeCanvas() {
@@ -1327,18 +1283,6 @@ class MyClass {
         myClass.LoadEmulator(byteArray);
     }
 
-    toggleOnscreenKeyboard() {
-        Module._neil_toggle_onscreenkeyboard();
-    }
-
-    toggleFPS() {
-        Module._neil_toggle_fps();
-    }
-
-    exportModal() {
-        $("#exportModal").modal();
-    }
-
     settingsModal() {
         this.rivetsData.ramTemp = this.ram;
         this.rivetsData.initialHardDriveTemp = this.initialHardDrive;
@@ -1641,11 +1585,6 @@ class MyClass {
         myClass.LoadEmulator(byteArray);
     }
 
-    exitToDos() {
-        Module._neil_exit_to_dos();
-    }
-
-
     convertCSharpDateTime(initialDate) {
         let dateString = initialDate;
         dateString = dateString.substring(0, dateString.indexOf('T'));
@@ -1799,7 +1738,10 @@ class MyClass {
             myClass.updateCanvas(rgbSource);
             return;
         }
-        // console.log(name, props);
+    }
+
+    toggleOnscreenKeyboard() {
+        this.keyboardController.toggle();
     }
 
     Run() {
