@@ -295,3 +295,54 @@ a:hover {
     margin-left: auto;
     margin-right: auto;
 }
+
+#canvasDiv:fullscreen {
+    background-color: black !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+}
+
+#canvasDiv:-webkit-full-screen {
+    background-color: black !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+}
+
+#canvasDiv:-moz-full-screen {
+    background-color: black !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+}
+
+#canvasDiv:fullscreen canvas,
+#canvasDiv:-webkit-full-screen canvas,
+#canvasDiv:-moz-full-screen canvas {
+    object-fit: contain !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+}

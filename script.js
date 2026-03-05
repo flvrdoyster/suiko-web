@@ -991,18 +991,38 @@ class MyClass {
         const canvas = document.getElementById('canvas');
         if (!canvasDiv || !canvas) return;
 
+        const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+
+        // Reset any inline styles on canvas first
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+
         if (this.rivetsData.displayMode === 'original') {
-            canvasDiv.style.width = `${baseWidth}px`;
-            canvasDiv.style.height = `${baseHeight}px`;
-            canvasDiv.style.margin = '0 auto';
+            if (isFullscreen) {
+                canvasDiv.style.width = '100%';
+                canvasDiv.style.height = '100%';
+                canvas.style.width = `${baseWidth}px`;
+                canvas.style.height = `${baseHeight}px`;
+            } else {
+                canvasDiv.style.width = `${baseWidth}px`;
+                canvasDiv.style.height = `${baseHeight}px`;
+                canvasDiv.style.margin = '0 auto';
+            }
         } else if (this.rivetsData.displayMode === 'fit') {
             const windowWidth = window.innerWidth;
             const windowHeight = window.innerHeight;
             const scale = Math.min(windowWidth / baseWidth, windowHeight / baseHeight);
 
-            canvasDiv.style.width = `${baseWidth * scale}px`;
-            canvasDiv.style.height = `${baseHeight * scale - 7}px`;
-            canvasDiv.style.margin = '0 auto';
+            if (isFullscreen) {
+                canvasDiv.style.width = '100%';
+                canvasDiv.style.height = '100%';
+                canvas.style.width = `${baseWidth * scale}px`;
+                canvas.style.height = `${baseHeight * scale}px`;
+            } else {
+                canvasDiv.style.width = `${baseWidth * scale}px`;
+                canvasDiv.style.height = `${baseHeight * scale - 7}px`;
+                canvasDiv.style.margin = '0 auto';
+            }
         }
 
         // Ensure internal resolution is always 640x480
