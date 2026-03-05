@@ -39,7 +39,10 @@ class MyClass {
 
         const mainDiv = document.getElementById('maindiv');
         if (mainDiv) {
-            rivets.bind(mainDiv, { data: this.rivetsData });
+            this.rivetsView = rivets.bind(document.getElementById('maindiv'), { data: this.rivetsData });
+
+            // Initial UI State Sync
+            setTimeout(() => this.updateToggleUI(), 0);
         }
 
         $('#topPanel').show();
@@ -225,7 +228,6 @@ class MyClass {
         let formatted = file.name + ' ' + loaded + 'MB / ' + total + 'MB';
 
         document.getElementById('myProgress').style.width = percent + '%';
-        document.getElementById('myProgress').innerHTML = formatted;
     }
 
     configureEmulator() {
@@ -318,7 +320,6 @@ class MyClass {
                 const formatted = receivedLength_ + 'MB / ' + contentLength_ + 'MB';
 
                 document.getElementById('myProgress').style.width = ((receivedLength_ / contentLength_) * 100) + '%';
-                document.getElementById('myProgress').innerHTML = formatted;
 
                 chunks.push(value);
                 return reader.read().then(process);
@@ -461,7 +462,6 @@ class MyClass {
             let formatted = '(' + (index + 1) + ' of ' + files.length + ') ' + file.name + ' ' + loaded + 'MB / ' + total + 'MB';
 
             document.getElementById('myProgress').style.width = percent + '%';
-            document.getElementById('myProgress').innerHTML = formatted;
         }
             ;
         reader.onload = function (e) {
@@ -897,7 +897,6 @@ class MyClass {
             let formatted = loaded + 'MB / ' + total + 'MB';
 
             document.getElementById('myProgress').style.width = percent + '%';
-            document.getElementById('myProgress').innerHTML = formatted;
         }
             ;
         req.onload = function (e) {
@@ -951,6 +950,11 @@ class MyClass {
         }
     }
 
+    toggleDisplayMode() {
+        const newMode = this.rivetsData.displayMode === 'fit' ? 'original' : 'fit';
+        this.setDisplayMode(newMode);
+    }
+
     setDisplayMode(mode) {
         if (mode === 'fullscreen') {
             this.fullscreen();
@@ -958,6 +962,25 @@ class MyClass {
         }
         this.rivetsData.displayMode = mode;
         this.resizeCanvas();
+        this.updateToggleUI();
+    }
+
+    updateToggleUI() {
+        const toggle = document.getElementById('displayToggle');
+        const lblOrig = document.getElementById('labelOriginal');
+        const lblFit = document.getElementById('labelFit');
+
+        if (!toggle || !lblOrig || !lblFit) return;
+
+        if (this.rivetsData.displayMode === 'fit') {
+            toggle.classList.add('active');
+            lblFit.classList.add('active');
+            lblOrig.classList.remove('active');
+        } else {
+            toggle.classList.remove('active');
+            lblFit.classList.remove('active');
+            lblOrig.classList.add('active');
+        }
     }
 
     resizeCanvas() {
@@ -1315,13 +1338,11 @@ class MyClass {
         const data = new Blob([arrayBuffer])
         let file = new File([data], 'win95.zip');
 
-        document.getElementById('myProgress').innerHTML = 'Decompressing...';
 
         let zipReader = new zip.ZipReader(new zip.BlobReader(file));
         let entries = await zipReader.getEntries()
         let blob = await entries[0].getData(new zip.BlobWriter());
         let byteArray = new Uint8Array(await blob.arrayBuffer());
-        document.getElementById('myProgress').innerHTML = 'Finished Decompressing';
 
         myClass.LoadEmulator(byteArray);
     }

@@ -36,8 +36,8 @@
                 </div>
 
 
-                <div class="progress mt-4" id="progressOuter" rv-if="data.showProgress">
-                    <div class="progress-bar bg-info" role="progressbar" id="myProgress">1%</div>
+                <div class="emu-progress" id="progressOuter" rv-if="data.showProgress">
+                    <div class="emu-progress-bar" id="myProgress"></div>
                 </div>
 
                 <button class="ExecRom emu-btn emu-btn-primary mt-4" onclick="myApp.playGame()"
@@ -61,16 +61,16 @@
                     </div>
 
                     <!-- Bottom Row: Display Mode -->
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
-                        <span
-                            style="color: #ddd; font-weight: bold; font-size: 0.95rem; text-shadow: 1px 1px 0px #000;">화면
-                            비율</span>
-                        <div class="emu-btn-group" role="group">
-                            <button type="button" class="emu-btn" rv-class-active="data.displayMode | eq 'original'"
-                                onclick="myApp.setDisplayMode('original')">원본 크기</button>
-                            <button type="button" class="emu-btn" rv-class-active="data.displayMode | eq 'fit'"
-                                onclick="myApp.setDisplayMode('fit')">화면 맞춤</button>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 20px;">
+
+                        <div class="emu-toggle-wrapper" onclick="myApp.toggleDisplayMode()">
+                            <span class="emu-toggle-label" id="labelOriginal">원본 크기</span>
+                            <div class="emu-toggle" id="displayToggle">
+                                <div class="emu-toggle-knob"></div>
+                            </div>
+                            <span class="emu-toggle-label" id="labelFit">화면 맞춤</span>
                         </div>
+
                         <div class="emu-btn-group" role="group">
                             <button class="emu-btn" onclick="myApp.setDisplayMode('fullscreen')">전체 화면</button>
                         </div>
