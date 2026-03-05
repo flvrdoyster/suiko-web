@@ -292,7 +292,6 @@ class MyClass {
 
                     myApp.initAudio();
                     myApp.processImportBuffer(name, fullArray.buffer);
-                    myApp.loadGameData();
                     return;
                 }
 
@@ -1506,73 +1505,6 @@ class MyClass {
         saveAs(file);
     }
 
-    async loadGameData() {
-        const saveGameBase64String = localStorage.getItem("saveGameBase64String");
-
-        if (!saveGameBase64String || saveGameBase64String.length <= 0)
-            return;
-
-        const binaryString = atob(saveGameBase64String);
-        const len = binaryString.length;
-        const bytes = new Uint8Array(len);
-
-        for (let i = 0; i < len; i++)
-            bytes[i] = binaryString.charCodeAt(i);
-
-        const zip = await JSZip.loadAsync(bytes);
-
-        zip.forEach(async (relativePath, zipEntry) => {
-            const content = await zipEntry.async("arraybuffer");
-            Module.FS.writeFile('/' + relativePath, new Uint8Array(content));
-        });
-
-        this.configuration.startupScript =
-            'MOUNT E . \r\n' +
-            'XCOPY E:\\SAVEDAT*.* C:\\GENSE\\SAVEDATA\\ /Y \r\n' +
-            'MOUNT -u E \r\n';
-    }
-
-    saveGameDataSync() {
-        if (!Module.FS)
-            return 0;
-
-        if (!this.img_loaded)
-            return 0;
-
-        const filearray = Module.FS.readFile('/' + this.base_name + '.img');
-        const savedata = extractFAT16file(filearray.buffer,
-            ['GENSE\\Savedata\\savedat1.dat',
-                'GENSE\\Savedata\\savedat2.dat',
-                'GENSE\\Savedata\\savedat3.dat',
-                'GENSE\\Savedata\\savedat4.dat',
-                'GENSE\\Savedata\\savedat5.dat',
-                'GENSE\\Savedata\\savedat6.dat']);
-
-        if (savedata.length <= 0)
-            return toastr.error("세이브 파일이 없습니다."), 0;
-
-        const jsZip = new JSZip();
-
-        const base64 = jsZip.sync(function () {
-            savedata.forEach(e => jsZip.file(e[0], e[1]));
-
-            let data = null;
-            jsZip.generateAsync({
-                type: 'base64',
-                compression: 'DEFLATE',
-                compressionOptions: { level: 9 }
-            }).then(function (content) {
-                data = content;
-            });
-
-            return data;
-        });
-
-        localStorage.setItem("saveGameBase64String", base64);
-        toastr.success("저장 완료");
-
-        return 1;
-    }
 
     importFiles(event) {
         console.log('import files');
@@ -1982,11 +1914,5 @@ window.addEventListener("message", myClass.sleepHandler, {
     passive: true
 });
 
-window.addEventListener("beforeunload", function (e) {
-    myApp.saveGameDataSync();
-
-    e.preventDefault();
-    e.returnValue = "";
-});
 
 window.addEventListener('resize', myApp.resizeCanvas);
