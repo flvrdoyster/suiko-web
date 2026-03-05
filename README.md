@@ -11,7 +11,7 @@ Modifications and web deployment by flvrdoyster
 
 ## Software Notice
 
-This repository contains a preconfigured disk image used to run Gensei Suikoden (幻世酔虎伝) in a browser environment.
+This repository contains a preconfigured disk image used to run Korean-localized version of Gensei Suikoden (환세취호전) in a browser environment.
 
 The game was originally developed by Compile.  
 The disk image may include additional system software required to run the game.
