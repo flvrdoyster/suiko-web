@@ -288,6 +288,8 @@ class MyClass {
         $('#githubDiv').hide();
         myClass.rivetsData.showProgress = true;
 
+        myApp.initAudio();
+
         this.clearHardDrive(true);
 
         fetch('./' + name).then(response => {
@@ -307,7 +309,6 @@ class MyClass {
                         position += chunk.length;
                     }
 
-                    myApp.initAudio();
                     myApp.processImportBuffer(name, fullArray.buffer);
                     return;
                 }
