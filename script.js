@@ -240,9 +240,7 @@ class MyClass {
         }
 
         if (this.rivetsData.mobileMode) {
-            this.setupMobileMode();
             $('#githubDiv').hide();
-            $('#errorMobile').show();
         }
         this.resizeCanvas();
 
@@ -670,35 +668,6 @@ class MyClass {
             $("#mobileButtons").hide();
             $('#menuDiv').show();
         }
-    }
-
-    setupMobileMode() {
-        this.canvasWidth = window.outerWidth;
-
-        $("#btnHideMenu").show();
-        let halfWidth = (window.outerWidth / 2) - 35;
-
-        document.getElementById("menuDiv").style.left = halfWidth + "px";
-        document.getElementById('canvasDiv').classList = [];
-
-        this.rivetsData.inputController.setupMobileControls('divTouchSurface');
-
-        // $("#mobileDiv").show(); // Obsolete
-        // $("#maindiv").hide(); // Obsolete
-        // $('#canvasDiv').appendTo("#mobileCanvas"); // Obsolete
-
-        document.getElementById('maindiv').classList.remove('container');
-
-        //fixes the small gap between canvas and mobile buttons
-        document.getElementById('canvas').style.display = 'block';
-
-        //scroll back to top
-        try {
-            document.body.scrollTop = 0;
-            // For Safari
-            document.documentElement.scrollTop = 0;
-            // For Chrome, Firefox, IE and Opera
-        } catch (error) { }
     }
 
     sanitizeName(name) {
